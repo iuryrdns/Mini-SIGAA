@@ -1,6 +1,6 @@
-module Aluno (Aluno(..), adicionarDisciplina) where
+module Models.Aluno (Aluno(..), adicionarDisciplina) where
 
-import Disciplina ( Disciplina )
+import Models.Disciplina ( Disciplina )
 
 data Aluno = Aluno {
     nomeAluno :: String,

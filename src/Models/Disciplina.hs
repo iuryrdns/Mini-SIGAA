@@ -1,6 +1,6 @@
-module Disciplina (Disciplina(..), alterarProfessor, alterarLocal) where
+module Models.Disciplina (Disciplina(..), alterarProfessor, alterarLocal) where
 
-import Professor ( Professor )
+import Models.Professor ( Professor )
 
 data Disciplina = Disciplina {
     nomeDisc :: String,

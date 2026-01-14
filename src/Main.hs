@@ -1,14 +1,14 @@
 module Main where
 
-import Aluno ( Aluno(..) )
-import Disciplina ( Disciplina )
-import Professor ( Professor(..) )
+import Models.Aluno ( Aluno(..) )
+import Models.Disciplina ( Disciplina )
+import Models.Professor ( Professor(..) )
 import System.IO (hFlush, stdout)
 
 main :: IO()
 
 main = do
-    putStrLn "__Seja bem-vindo a o Mini-SIGAA__\n"
+    putStrLn "__Seja bem-vindo ao Mini-SIGAA__\n"
 
     putStr "Pressione Enter para continuar..."
     hFlush stdout

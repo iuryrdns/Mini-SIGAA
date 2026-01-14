@@ -1,4 +1,4 @@
-module Professor (Professor(..)) where
+module Models.Professor (Professor(..)) where
 
 data Professor = Professor {
     nomeProf :: String,
