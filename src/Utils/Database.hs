@@ -10,8 +10,7 @@ carregarSistema = do
     existeDb <- doesFileExist dbPath
     
     if existeDb then do
-        conteudo <- withFile dbPath ReadMode $ \h -> do
-            hGetContents h
+        conteudo <- readFile dbPath
        
         case readMaybe conteudo of
             Just sistemaLido -> do
@@ -24,6 +23,7 @@ carregarSistema = do
                 
     else do
         putStrLn "Nenhum arquivo encontrado."
+        putStrLn "Iniciando sistema vazio."
         return sistemaVazio
 
 
