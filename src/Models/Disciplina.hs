@@ -1,24 +1,24 @@
 module Models.Disciplina(Disciplina, getCodigoDisciplina, getNomeDisciplina, getRequisitosDisciplina, criarDisciplina) where
 
 data Disciplina = Disciplina{ 
-  _codigo :: Int,
+  _codigo :: String,
   _nome :: String,
-  _preRequisitos :: [Disciplina]
+  _preRequisitos :: [String]
   } deriving (Show, Read, Eq)
 
-criarDisciplina :: Int -> String -> [Disciplina] -> Disciplina
+criarDisciplina :: String -> String -> [String] -> Disciplina
 criarDisciplina codigo nome preRequisitos = Disciplina {
   _codigo = codigo,
   _nome = nome,
   _preRequisitos = preRequisitos
 }
 
-getCodigoDisciplina :: Disciplina -> Int
+getCodigoDisciplina :: Disciplina -> String
 getCodigoDisciplina = _codigo
 
 getNomeDisciplina :: Disciplina -> String
 getNomeDisciplina = _nome
 
-getRequisitosDisciplina :: Disciplina -> [Disciplina]
+getRequisitosDisciplina :: Disciplina -> [String]
 getRequisitosDisciplina = _preRequisitos
 
