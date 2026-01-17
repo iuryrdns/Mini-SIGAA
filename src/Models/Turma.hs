@@ -1,4 +1,4 @@
-module Models.Turma(Turma, getCodigoTurma, getAlunosTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, adicionarAlunoTurma, criarTurma) where
+module Models.Turma(Turma, getCodigoTurma, getAlunosTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, adicionarAlunoTurma, criarTurma, temVagaTurma) where
 
 import Models.Professor
 import Models.Aluno
@@ -9,15 +9,17 @@ data Turma = Turma{
   _professor :: Professor,
   _disciplina :: Disciplina,
   _horario :: String,
-  _alunos :: [Aluno]
+  _alunos :: [Aluno],
+  _qtdMaxAlunos :: Int
   } deriving (Show, Read, Eq)
 
-criarTurma :: Int -> Professor -> Disciplina -> String -> Turma 
-criarTurma codigo professor disciplina horario = Turma {
+criarTurma :: Int -> Professor -> Disciplina -> String -> Int -> Turma 
+criarTurma codigo professor disciplina horario qtdAlunos = Turma {
   _codigo = codigo,
   _professor = professor,
   _disciplina = disciplina,
   _horario = horario,
+  _qtdMaxAlunos = qtdAlunos,
   _alunos = []
 }
 
@@ -40,3 +42,6 @@ getHorarioTurma = _horario
 
 getAlunosTurma :: Turma -> [Aluno]
 getAlunosTurma = _alunos
+
+temVagaTurma :: Turma -> Bool
+temVagaTurma turma = length (_alunos turma) < _qtdMaxAlunos turma
