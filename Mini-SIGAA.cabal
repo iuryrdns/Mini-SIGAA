@@ -1,0 +1,23 @@
+cabal-version:      2.4
+name:               Mini-SIGAA
+version:            0.1.0.0
+
+library
+    exposed-modules:  Models.Aluno
+                    , Models.Professor
+                    , Models.Disciplina
+                    , Models.Turma
+                    , Sistema
+                    , Utils.Database
+    build-depends:    directory ^>=1.3.8.5, containers ^>=0.6.7, base
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+executable mini-sigaa
+    main-is:          Main.hs
+    build-depends:    base
+                    , Mini-SIGAA
+                    , directory ^>=1.3.8.5
+                    , containers ^>=0.6.7
+    hs-source-dirs:   src
+    default-language: Haskell2010
