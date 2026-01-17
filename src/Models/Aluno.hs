@@ -6,7 +6,8 @@ data Aluno = Aluno {
   _nome :: String,
   _curso :: String,
   _cra :: Float,
-  _notas :: Map.Map Int Int
+  _notas :: Map.Map Int Int,
+  _disciplinasConcluidas :: [String]
   } deriving (Show, Read, Eq)
 
 criarAluno :: Int -> String -> String -> Float -> Aluno
@@ -15,7 +16,8 @@ criarAluno matricula nome curso cra = Aluno {
   _nome = nome,
   _curso = curso,
   _cra = cra,
-  _notas = Map.empty
+  _notas = Map.empty,
+  _disciplinasConcluidas = []
 }
 
 getMatriculaAluno :: Aluno -> Int
