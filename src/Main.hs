@@ -3,9 +3,11 @@ module Main (main) where
 import Models.Aluno (criarAluno)
 import Models.Disciplina (criarDisciplina)
 import Models.Professor (criarProfessor)
-import Sistema (Sistema, abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos)
+import Sistema (Sistema (_matriculas), abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos, cadastrarTurma)
 import System.IO (hFlush, stdout)
 import Utils.Database (carregarSistema, salvarSistema)
+import Models.Turma (criarTurma)
+
 
 main :: IO ()
 main = do
@@ -19,8 +21,10 @@ main = do
   let fase = getFase sistemaInicial
 
   case fase of
-    1 -> do
+    0 -> do
       menuPrincipal sistemaInicial
+    1 -> do
+      menuMatricula sistemaInicial
     2 -> do
       putStrLn "<TODO> fase de correção de conflitos da primeira fase"
     3 -> do
@@ -32,6 +36,7 @@ main = do
     _ -> do
       putStrLn "Caso de erro impossível"
 
+menuPrincipal :: Sistema -> IO ()
 menuPrincipal sistema = do
   putStrLn "\n--- Período de Alteração Geral ---"
   putStrLn "1. Cadastrar Professor"
@@ -132,7 +137,36 @@ menuPrincipal sistema = do
               putStrLn "Disciplina cadastrada."
               menuPrincipal novoSistema
     "4" -> do
-      print ""
+      putStr "Codigo da Turma: "
+      hFlush stdout
+      codigoTurma <- getLine
+
+      putStr "Matricula Professor: "
+      hFlush stdout
+      professorDisciplina <- getLine
+
+      putStr "Codigo da Disciplina: "
+      hFlush stdout
+      disciplina <- getLine
+
+      putStr "Horario: "
+      hFlush stdout
+      horario <- getLine
+
+      putStr "Quantidade MAX de alunos: "
+      hFlush stdout
+      qtdAlunos <- getLine
+
+      let novaTurma = criarTurma (read codigoTurma) (read professorDisciplina) disciplina horario (read qtdAlunos)
+
+      case cadastrarTurma novaTurma sistema of
+        Left erro -> do
+          putStrLn erro
+          menuPrincipal sistema
+        Right novoSistema -> do
+          putStrLn "Disciplina cadastrada com sucesso!"
+          menuPrincipal novoSistema
+
     "5" -> do
       putStrLn "\n--- Lista de Alunos ---"
       print (getAlunos sistema)
@@ -152,7 +186,7 @@ menuPrincipal sistema = do
           menuPrincipal sistema
         Right novoSistema -> do
           putStrLn "Periodo de Matriculas Aberto!"
-          menuPrincipal novoSistema
+          menuMatricula novoSistema
     "0" -> putStrLn "Saindo..."
     _ -> do
       putStrLn "Opção inválida!"
@@ -162,7 +196,8 @@ menuMatricula :: Sistema -> IO ()
 menuMatricula sistema = do
   putStrLn "\n--- Período de Matrículas ---"
   putStrLn "1. Matricular aluno em turma"
-  putStrLn "0. Sair"
+  putStrLn "2. Mostrar Matriculas"
+  putStrLn "0. Sair para o Menu Principal"
 
   opcao <- getLine
 
@@ -171,16 +206,24 @@ menuMatricula sistema = do
       putStr "Matrícula do aluno: "
       hFlush stdout
       matricula <- getLine
+      
+      putStr "Codigo da Turma: "
+      hFlush stdout
+      turma <- getLine
 
-      case realizarMatricula (read matricula) sistema of
+      case realizarMatricula (read matricula) (read turma) sistema of
         Left erro -> do
           putStrLn erro
           menuMatricula sistema
         Right novoSistema -> do
-          putStrLn "Aluno cadastrado com sucesso"
+          putStrLn "Matricula cadastrada com sucesso"
           menuMatricula novoSistema
+    "2" -> do
+      print (_matriculas sistema)
+
     "0" -> do
       putStrLn "Saindo..."
+      menuPrincipal sistema
     _ -> do
       putStrLn "Opção inválida"
       menuMatricula sistema
