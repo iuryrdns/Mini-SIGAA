@@ -1,4 +1,5 @@
 module Sistema where
+<<<<<<< HEAD
 import qualified Data.Map as Map
 import Models.Aluno
 import Models.Professor
@@ -13,11 +14,32 @@ data Sistema = Sistema {
   _turmas :: Map.Map Int Turma,
   _fase :: Int
   } deriving (Show, Read)
+=======
+
+import Data.Map as Map (Map, empty, insert, member)
+import Models.Aluno (Aluno, getMatriculaAluno)
+import Models.Disciplina (Disciplina, getCodigoDisciplina)
+import Models.Professor (Professor, getMatriculaProfessor)
+import Models.Turma (Turma, getCodigoTurma)
+import System.Directory (doesDirectoryExist, doesFileExist)
+import Text.Read (readMaybe)
+
+data Sistema = Sistema
+  { _alunos :: Map.Map Int Aluno,
+    _professores :: Map.Map Int Professor,
+    _disciplinas :: Map.Map String Disciplina,
+    _matriculas :: Map.Map Int Int,
+    _turmas :: Map.Map Int Turma,
+    _fase :: Int
+  }
+  deriving (Show, Read)
+>>>>>>> fba7626 (Início da separação de fases)
 
 dbPath :: String
 dbPath = "dados.db"
 
 sistemaVazio :: Sistema
+<<<<<<< HEAD
 sistemaVazio = Sistema {
   _alunos = Map.empty,
   _professores = Map.empty,
@@ -25,6 +47,17 @@ sistemaVazio = Sistema {
   _turmas = Map.empty,
   _fase = 0
 }
+=======
+sistemaVazio =
+  Sistema
+    { _alunos = Map.empty,
+      _professores = Map.empty,
+      _disciplinas = Map.empty,
+      _matriculas = Map.empty,
+      _turmas = Map.empty,
+      _fase = 0
+    }
+>>>>>>> fba7626 (Início da separação de fases)
 
 cadastrar :: (Ord i) => (v -> i) -> (Sistema -> Map.Map i v) -> (Map.Map i v -> Sistema -> Sistema) -> String -> v -> Sistema -> Either String Sistema
 cadastrar getId getMap updateSystem nomeEntidade item sistema =
@@ -60,6 +93,9 @@ cadastrarDisciplina = cadastrar getCodigoDisciplina _disciplinas (\m s -> s {_di
 cadastrarTurma :: Turma -> Sistema -> Either String Sistema
 cadastrarTurma = cadastrar getCodigoTurma _turmas (\m s -> s {_turmas = m}) "Turma"
 
+realizarMatricula :: Int -> Sistema -> Either String Sistema
+realizarMatricula = cadastrar id _matriculas (\m s -> s {_matriculas = m}) "Matricula"
+
 verificarRequisitos :: [String] -> Sistema -> Either String [String]
 verificarRequisitos requisistos sistema = mapM verificar requisistos
   where
@@ -78,5 +114,13 @@ getProfessores = _professores
 getDisciplinas :: Sistema -> Map.Map String Disciplina
 getDisciplinas = _disciplinas
 
+<<<<<<< HEAD
 getTurmas ::Sistema -> Map.Map Int Turma
 getTurmas = _turmas
+=======
+getTurmas :: Sistema -> Map.Map Int Turma
+getTurmas = _turmas
+
+getFase :: Sistema -> Int
+getFase = _fase
+>>>>>>> fba7626 (Início da separação de fases)

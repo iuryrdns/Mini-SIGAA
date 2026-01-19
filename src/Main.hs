@@ -1,5 +1,12 @@
 module Main (main) where
 
+<<<<<<< HEAD
+=======
+import Models.Aluno (criarAluno)
+import Models.Disciplina (criarDisciplina)
+import Models.Professor (criarProfessor)
+import Sistema (Sistema, abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos)
+>>>>>>> fba7626 (Início da separação de fases)
 import System.IO (hFlush, stdout)
 import Utils.Database (carregarSistema, salvarSistema)
 import Sistema (Sistema, verificarRequisitos, cadastrarDisciplina, cadastrarAluno, sistemaVazio, cadastrarProfessor, getAlunos, getProfessores, abrirPeriodoMatriculas)
@@ -15,20 +22,39 @@ main = do
   putStr "\nPressione Enter para continuar..."
   hFlush stdout
   _ <- getLine
+<<<<<<< HEAD
   
   menuPrincipal sistemaInicial
+=======
+
+  fase <- getFase sistemaInicial
+
+  case fase of
+    "1" -> do
+      menuPrincipal sistemaInicial
+    "2" -> do
+      putStrLn "<TODO> fase de correção de conflitos da primeira fase"
+    "3" -> do
+      putStrLn "<TODO> fase de matrículas dos alunos"
+    "4" -> do
+      putStrLn "<TODO> fase de correção de conflitos da terceira fase"
+    "5" -> do
+      putStrLn "<TODO> final das operações mostrando resultados"
+    _ -> do
+      putStrLn "Caso de erro impossível"
+>>>>>>> fba7626 (Início da separação de fases)
 
 
 menuPrincipal :: Sistema -> IO ()
 menuPrincipal sistema = do
-  putStrLn "\n--- MENU PRINCIPAL ---"
+  putStrLn "\n--- Período de Alteração Geral ---"
   putStrLn "1. Cadastrar Professor"
   putStrLn "2. Cadastrar Aluno"
   putStrLn "3. Cadastrar Disciplina"
   putStrLn "4. Cadastrar Turma"
   putStrLn "5. Ver Alunos Cadastrados"
   putStrLn "6. Ver Professores Cadastrados"
-  putStrLn "7. Salvar Sistema"
+  putStrLn "7. Salvar Alterações"
   putStrLn "8. Abrir Periodo de Matriculas"
   putStrLn "0. Sair"
 
@@ -137,7 +163,7 @@ menuPrincipal sistema = do
       menuPrincipal sistema
       
     "7" -> do
-      putStrLn "Salvando Sistema..."
+      putStrLn "Salvando alterações..."
       salvarSistema sistema
       menuPrincipal sistema
 
@@ -155,3 +181,30 @@ menuPrincipal sistema = do
     _ -> do
       putStrLn "Opção inválida!"
       menuPrincipal sistema
+
+menuMatricula :: Sistema -> IO ()
+menuMatricula sistema = do
+  putStrLn "\n--- Período de Matrículas ---"
+  putStrLn "1. Matricular aluno em turma"
+  putStrLn "0. Sair"
+
+  opcao <- getLine
+
+  case opcao of
+    "1" -> do
+      putStr "Matrícula do aluno: "
+      hFlush stdout
+      matricula <- getLine
+
+      case realizarMatricula (read matricula) sistema of
+        Left erro -> do
+          putStrLn erro
+          menuMatricula sistema
+        Right novoSistema -> do
+          putStrLn "Aluno cadastrado com sucesso"
+          menuMatricula novoSistema
+    "0" -> do
+      putStrLn "Saindo..."
+    _ -> do
+      putStrLn "Opção inválida"
+      menuMatricula sistema
