@@ -6,7 +6,7 @@ data Aluno = Aluno {
   _nome :: String,
   _curso :: String,
   _cra :: Float,
-  _notas :: Map.Map Int Int,
+  _notas :: Map.Map Int [Int],
   _disciplinasConcluidas :: [String]
   } deriving (Show, Read, Eq)
 
