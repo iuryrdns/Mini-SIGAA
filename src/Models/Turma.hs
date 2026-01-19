@@ -6,17 +6,17 @@ import Models.Disciplina
 
 data Turma = Turma{ 
   _codigo :: Int,
-  _professor :: Professor,
-  _disciplina :: Disciplina,
+  _matriculaProfessor :: Int,
+  _disciplina :: String,
   _horario :: String,
   _alunos :: [Aluno],
   _qtdMaxAlunos :: Int
   } deriving (Show, Read, Eq)
 
-criarTurma :: Int -> Professor -> Disciplina -> String -> Int -> Turma 
+criarTurma :: Int -> Int -> String -> String -> Int -> Turma 
 criarTurma codigo professor disciplina horario qtdAlunos = Turma {
   _codigo = codigo,
-  _professor = professor,
+  _matriculaProfessor = professor,
   _disciplina = disciplina,
   _horario = horario,
   _qtdMaxAlunos = qtdAlunos,
@@ -31,10 +31,10 @@ adicionarAlunoTurma turma aluno = turma {
 getCodigoTurma :: Turma -> Int
 getCodigoTurma = _codigo
 
-getProfessorTurma :: Turma -> Professor
-getProfessorTurma = _professor
+getProfessorTurma :: Turma -> Int
+getProfessorTurma = _matriculaProfessor
 
-getDisciplinaTurma :: Turma -> Disciplina
+getDisciplinaTurma :: Turma -> String
 getDisciplinaTurma = _disciplina
 
 getHorarioTurma :: Turma -> String
