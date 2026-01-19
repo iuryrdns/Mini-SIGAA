@@ -10,7 +10,7 @@ library
                     , Sistema
                     , Utils.Database
                     , Utils.Avaliador
-    build-depends:    directory ^>=1.3.8.5, containers ^>=0.6.7, base
+    build-depends:    directory ^>=1.3.8.5, containers ^>=0.6.7, text ^>=2.0.2, base
     hs-source-dirs:   src
     default-language: Haskell2010
 
