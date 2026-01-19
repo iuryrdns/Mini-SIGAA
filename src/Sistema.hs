@@ -1,10 +1,10 @@
 module Sistema where
 
-import Data.Map as Map (Map, empty, insert, member)
+import Data.Map as Map (Map, empty, insert, member, (!))
 import Models.Aluno (Aluno, getMatriculaAluno)
 import Models.Disciplina (Disciplina, getCodigoDisciplina)
 import Models.Professor (Professor, getMatriculaProfessor)
-import Models.Turma (Turma, getCodigoTurma)
+import Models.Turma (Turma, getCodigoTurma, temVagaTurma, getDisciplinaTurma, getProfessorTurma)
 import System.Directory (doesDirectoryExist, doesFileExist)
 import Text.Read (readMaybe)
 
@@ -48,11 +48,21 @@ cadastrar getId getMap updateSystem nomeEntidade item sistema =
         Right novoSistema
 
 abrirPeriodoMatriculas :: Sistema -> Either String Sistema
-abrirPeriodoMatriculas sistema = 
+abrirPeriodoMatriculas sistema =
   if _fase sistema == 1 then
     Left "Matriculas ja estao abertas"
-  else 
+  else
     Right sistema {_fase = 1}
+
+realizarMatricula :: Int -> Int -> Sistema -> Either String Sistema
+realizarMatricula matricula idTurma sistema
+  | not (Map.member matricula (_alunos sistema)) = Left "Aluno não cadastrado"
+  | not (Map.member idTurma (_turmas sistema)) = Left "Turma não cadastrada"
+  | not (temVagaTurma turmaEncontrada) = Left "Turma sem Vaga!"
+  | otherwise =
+    cadastrar (const matricula) _matriculas (\m s -> s {_matriculas = m}) "Matricula" idTurma sistema
+  where
+    turmaEncontrada = _turmas sistema Map.! idTurma
 
 cadastrarAluno :: Aluno -> Sistema -> Either String Sistema
 cadastrarAluno = cadastrar getMatriculaAluno _alunos (\m s -> s {_alunos = m}) "Aluno"
@@ -64,18 +74,19 @@ cadastrarDisciplina :: Disciplina -> Sistema -> Either String Sistema
 cadastrarDisciplina = cadastrar getCodigoDisciplina _disciplinas (\m s -> s {_disciplinas = m}) "Disciplina"
 
 cadastrarTurma :: Turma -> Sistema -> Either String Sistema
-cadastrarTurma = cadastrar getCodigoTurma _turmas (\m s -> s {_turmas = m}) "Turma"
-
-realizarMatricula :: Int -> Sistema -> Either String Sistema
-realizarMatricula = cadastrar id _matriculas (\m s -> s {_matriculas = m}) "Matricula"
+cadastrarTurma turma sistema
+  | not (Map.member (getProfessorTurma turma) (_professores sistema)) = Left "Professor não existe"
+  | not (Map.member (getDisciplinaTurma turma) (_disciplinas sistema)) = Left "Disciplina não existe"
+  | otherwise =
+    cadastrar getCodigoTurma _turmas (\m s -> s {_turmas = m}) "Turma" turma sistema
 
 verificarRequisitos :: [String] -> Sistema -> Either String [String]
 verificarRequisitos requisistos sistema = mapM verificar requisistos
   where
     mapaDisciplinas = _disciplinas sistema
-    verificar codigo = 
-        if Map.member codigo mapaDisciplinas 
-        then Right codigo 
+    verificar codigo =
+        if Map.member codigo mapaDisciplinas
+        then Right codigo
         else Left ("A disciplina requisito '" ++ codigo ++ "' nao existe!")
 
 getAlunos :: Sistema -> Map.Map Int Aluno
