@@ -16,18 +16,18 @@ main = do
   hFlush stdout
   _ <- getLine
 
-  fase <- getFase sistemaInicial
+  let fase = getFase sistemaInicial
 
   case fase of
-    "1" -> do
+    1 -> do
       menuPrincipal sistemaInicial
-    "2" -> do
+    2 -> do
       putStrLn "<TODO> fase de correção de conflitos da primeira fase"
-    "3" -> do
+    3 -> do
       putStrLn "<TODO> fase de matrículas dos alunos"
-    "4" -> do
+    4 -> do
       putStrLn "<TODO> fase de correção de conflitos da terceira fase"
-    "5" -> do
+    5 -> do
       putStrLn "<TODO> final das operações mostrando resultados"
     _ -> do
       putStrLn "Caso de erro impossível"
