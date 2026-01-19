@@ -1,18 +1,11 @@
 module Main (main) where
 
-<<<<<<< HEAD
-=======
 import Models.Aluno (criarAluno)
 import Models.Disciplina (criarDisciplina)
 import Models.Professor (criarProfessor)
 import Sistema (Sistema, abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos)
->>>>>>> fba7626 (Início da separação de fases)
 import System.IO (hFlush, stdout)
 import Utils.Database (carregarSistema, salvarSistema)
-import Sistema (Sistema, verificarRequisitos, cadastrarDisciplina, cadastrarAluno, sistemaVazio, cadastrarProfessor, getAlunos, getProfessores, abrirPeriodoMatriculas)
-import Models.Disciplina (criarDisciplina)
-import Models.Aluno (criarAluno)
-import Models.Professor (criarProfessor)
 
 main :: IO ()
 main = do
@@ -22,10 +15,6 @@ main = do
   putStr "\nPressione Enter para continuar..."
   hFlush stdout
   _ <- getLine
-<<<<<<< HEAD
-  
-  menuPrincipal sistemaInicial
-=======
 
   fase <- getFase sistemaInicial
 
@@ -42,10 +31,7 @@ main = do
       putStrLn "<TODO> final das operações mostrando resultados"
     _ -> do
       putStrLn "Caso de erro impossível"
->>>>>>> fba7626 (Início da separação de fases)
 
-
-menuPrincipal :: Sistema -> IO ()
 menuPrincipal sistema = do
   putStrLn "\n--- Período de Alteração Geral ---"
   putStrLn "1. Cadastrar Professor"
@@ -64,7 +50,7 @@ menuPrincipal sistema = do
   opcao <- getLine
 
   case opcao of
-    "1" -> do 
+    "1" -> do
       putStr "Nome do Professor: "
       hFlush stdout
       nomeProfessor <- getLine
@@ -72,17 +58,17 @@ menuPrincipal sistema = do
       putStr "Matricula do Professor: "
       hFlush stdout
       matricula <- getLine
-      
+
       putStr "Departamento: "
       hFlush stdout
       depProf <- getLine
-      
+
       putStr "Formação: "
       hFlush stdout
       formacao <- getLine
-      
+
       let novoProf = criarProfessor (read matricula) nomeProfessor depProf formacao
-      
+
       case cadastrarProfessor novoProf sistema of
         Left erro -> do
           putStrLn erro
@@ -90,7 +76,6 @@ menuPrincipal sistema = do
         Right novoSistema -> do
           putStrLn "Professor cadastrado com sucesso!"
           menuPrincipal novoSistema
-      
     "2" -> do
       putStr "Nome do Aluno: "
       hFlush stdout
@@ -107,9 +92,9 @@ menuPrincipal sistema = do
       putStr "CRA: "
       hFlush stdout
       craAluno <- getLine
-      
+
       let novoAluno = criarAluno (read matriculaAluno) nomeAluno cursoAluno (read craAluno)
-      
+
       case cadastrarAluno novoAluno sistema of
         Left erro -> do
           putStrLn erro
@@ -117,7 +102,6 @@ menuPrincipal sistema = do
         Right novoSistema -> do
           putStrLn "Aluno cadastrado com sucesso!"
           menuPrincipal novoSistema
-    
     "3" -> do
       putStr "Codigo da Disciplina: "
       hFlush stdout
@@ -132,52 +116,44 @@ menuPrincipal sistema = do
       entrada <- getLine
 
       let requisitos = words entrada
-      
+
       case verificarRequisitos requisitos sistema of
         Left erro -> do
-            putStrLn erro
-            menuPrincipal sistema
-            
+          putStrLn erro
+          menuPrincipal sistema
         Right requisitosValidados -> do
-            let novaDisciplina = criarDisciplina codigo nomeDisciplina requisitos
-            
-            case cadastrarDisciplina novaDisciplina sistema of
-                Left erro -> do
-                    putStrLn erro
-                    menuPrincipal sistema 
-                Right novoSistema -> do
-                    putStrLn "Disciplina cadastrada."
-                    menuPrincipal novoSistema 
+          let novaDisciplina = criarDisciplina codigo nomeDisciplina requisitos
 
+          case cadastrarDisciplina novaDisciplina sistema of
+            Left erro -> do
+              putStrLn erro
+              menuPrincipal sistema
+            Right novoSistema -> do
+              putStrLn "Disciplina cadastrada."
+              menuPrincipal novoSistema
     "4" -> do
       print ""
-                 
     "5" -> do
       putStrLn "\n--- Lista de Alunos ---"
       print (getAlunos sistema)
       menuPrincipal sistema
-      
     "6" -> do
       putStrLn "\n--- Lista de Professores ---"
       print (getProfessores sistema)
       menuPrincipal sistema
-      
     "7" -> do
       putStrLn "Salvando alterações..."
       salvarSistema sistema
       menuPrincipal sistema
-
     "8" -> do
       case abrirPeriodoMatriculas sistema of
         Left erro -> do
-          putStrLn erro 
-          menuPrincipal sistema 
+          putStrLn erro
+          menuPrincipal sistema
         Right novoSistema -> do
           putStrLn "Periodo de Matriculas Aberto!"
           menuPrincipal novoSistema
-
     "0" -> putStrLn "Saindo..."
-    
     _ -> do
       putStrLn "Opção inválida!"
       menuPrincipal sistema

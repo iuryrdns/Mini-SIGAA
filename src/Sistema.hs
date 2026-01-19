@@ -1,20 +1,4 @@
 module Sistema where
-<<<<<<< HEAD
-import qualified Data.Map as Map
-import Models.Aluno
-import Models.Professor
-import Models.Disciplina
-import Models.Turma
-import System.Directory (doesDirectoryExist, doesFileExist)
-import Text.Read (readMaybe)
-data Sistema = Sistema {
-  _alunos :: Map.Map Int Aluno,
-  _professores :: Map.Map Int Professor,
-  _disciplinas :: Map.Map String Disciplina,
-  _turmas :: Map.Map Int Turma,
-  _fase :: Int
-  } deriving (Show, Read)
-=======
 
 import Data.Map as Map (Map, empty, insert, member)
 import Models.Aluno (Aluno, getMatriculaAluno)
@@ -33,21 +17,11 @@ data Sistema = Sistema
     _fase :: Int
   }
   deriving (Show, Read)
->>>>>>> fba7626 (Início da separação de fases)
 
 dbPath :: String
 dbPath = "dados.db"
 
 sistemaVazio :: Sistema
-<<<<<<< HEAD
-sistemaVazio = Sistema {
-  _alunos = Map.empty,
-  _professores = Map.empty,
-  _disciplinas = Map.empty,
-  _turmas = Map.empty,
-  _fase = 0
-}
-=======
 sistemaVazio =
   Sistema
     { _alunos = Map.empty,
@@ -57,7 +31,6 @@ sistemaVazio =
       _turmas = Map.empty,
       _fase = 0
     }
->>>>>>> fba7626 (Início da separação de fases)
 
 cadastrar :: (Ord i) => (v -> i) -> (Sistema -> Map.Map i v) -> (Map.Map i v -> Sistema -> Sistema) -> String -> v -> Sistema -> Either String Sistema
 cadastrar getId getMap updateSystem nomeEntidade item sistema =
@@ -114,13 +87,8 @@ getProfessores = _professores
 getDisciplinas :: Sistema -> Map.Map String Disciplina
 getDisciplinas = _disciplinas
 
-<<<<<<< HEAD
-getTurmas ::Sistema -> Map.Map Int Turma
-getTurmas = _turmas
-=======
 getTurmas :: Sistema -> Map.Map Int Turma
 getTurmas = _turmas
 
 getFase :: Sistema -> Int
 getFase = _fase
->>>>>>> fba7626 (Início da separação de fases)
