@@ -3,7 +3,7 @@ module Main (main) where
 import Models.Aluno (criarAluno)
 import Models.Disciplina (criarDisciplina)
 import Models.Professor (criarProfessor)
-import Sistema (Sistema (_matriculas), abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos, cadastrarTurma)
+import Sistema (Sistema (_matriculas), abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos, cadastrarTurma, getMatriculasRealizadas)
 import System.IO (hFlush, stdout)
 import Utils.Database (carregarSistema, salvarSistema)
 import Models.Turma (criarTurma)
@@ -196,8 +196,10 @@ menuMatricula :: Sistema -> IO ()
 menuMatricula sistema = do
   putStrLn "\n--- Período de Matrículas ---"
   putStrLn "1. Matricular aluno em turma"
-  putStrLn "2. Mostrar Matriculas"
+  putStrLn "2. Ver Relatorio de Matriculas"
   putStrLn "0. Sair para o Menu Principal"
+  putStr "Escolha uma opção: "
+  hFlush stdout
 
   opcao <- getLine
 
@@ -217,10 +219,16 @@ menuMatricula sistema = do
           menuMatricula sistema
         Right novoSistema -> do
           putStrLn "Matricula cadastrada com sucesso"
+          salvarSistema novoSistema
           menuMatricula novoSistema
     "2" -> do
-      print (_matriculas sistema)
-
+      case getMatriculasRealizadas sistema of
+        Left erro -> do
+          putStrLn erro
+          menuMatricula sistema
+        Right relatorio -> do
+          putStrLn relatorio
+          menuMatricula sistema
     "0" -> do
       putStrLn "Saindo..."
       menuPrincipal sistema
