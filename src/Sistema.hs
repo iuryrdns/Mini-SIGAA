@@ -1,8 +1,8 @@
 module Sistema where
 
-import Data.Map as Map (Map, empty, insert, member, (!))
-import Models.Aluno (Aluno, getMatriculaAluno)
-import Models.Disciplina (Disciplina, getCodigoDisciplina)
+import Data.Map as Map (Map, empty, insert, member, (!), null, toList)
+import Models.Aluno (Aluno, getMatriculaAluno, getNomeAluno)
+import Models.Disciplina (Disciplina, getCodigoDisciplina, getNomeDisciplina)
 import Models.Professor (Professor, getMatriculaProfessor)
 import Models.Turma (Turma, getCodigoTurma, temVagaTurma, getDisciplinaTurma, getProfessorTurma)
 import System.Directory (doesDirectoryExist, doesFileExist)
@@ -62,7 +62,7 @@ realizarMatricula matricula idTurma sistema
   | otherwise =
     cadastrar (const matricula) _matriculas (\m s -> s {_matriculas = m}) "Matricula" idTurma sistema
   where
-    turmaEncontrada = _turmas sistema Map.! idTurma
+    turmaEncontrada = _turmas sistema ! idTurma
 
 cadastrarAluno :: Aluno -> Sistema -> Either String Sistema
 cadastrarAluno = cadastrar getMatriculaAluno _alunos (\m s -> s {_alunos = m}) "Aluno"
@@ -103,3 +103,27 @@ getTurmas = _turmas
 
 getFase :: Sistema -> Int
 getFase = _fase
+
+getMatriculasRealizadas :: Sistema -> Either String String
+getMatriculasRealizadas sistema
+  | Map.null (_matriculas sistema) = Left "Não há nenhuma matrícula!"
+  | otherwise = Right relatorioMatriculas
+  where
+    listaMatriculas = Map.toList (_matriculas sistema)
+
+    lista = zip [1..] listaMatriculas
+
+    montarLinha (idx, (idAluno, idTurma)) =
+      let
+        aluno = _alunos sistema ! idAluno
+        turma = _turmas sistema ! idTurma
+        codDisc = getDisciplinaTurma turma
+        disciplina = _disciplinas sistema ! codDisc
+        
+        nomeAluno   = getNomeAluno aluno
+        matrAluno   = show idAluno
+        nomeDisc  = getNomeDisciplina disciplina
+        codTurma  = show (getCodigoTurma turma)
+      in
+        show idx ++ ". " ++ nomeAluno ++ " - " ++ matrAluno ++ ": " ++ nomeDisc ++ " " ++ codTurma
+    relatorioMatriculas = unlines (map montarLinha lista)
