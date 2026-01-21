@@ -1,12 +1,13 @@
 module Main (main) where
 
-import Models.Aluno (criarAluno)
+import Models.Aluno (criarAluno, getNomeAluno)
 import Models.Disciplina (criarDisciplina)
-import Models.Professor (criarProfessor)
-import Sistema (Sistema (_matriculas), abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos, cadastrarTurma, getMatriculasRealizadas)
+import Models.Professor (criarProfessor, getNomeProfessor, getDepartamentoProfessor)
+import Sistema (Sistema (_matriculas, _alunos, _professores), abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos, cadastrarTurma, getMatriculasRealizadas)
 import System.IO (hFlush, stdout)
 import Utils.Database (carregarSistema, salvarSistema)
 import Models.Turma (criarTurma)
+import qualified Data.Map as Map
 
 
 main :: IO ()
@@ -172,12 +173,39 @@ menuPrincipal sistema = do
           menuPrincipal novoSistema
 
     "5" -> do
-      putStrLn "\n--- Lista de Alunos ---"
-      print (getAlunos sistema)
+      let mapaAlunos = _alunos sistema
+      if Map.null mapaAlunos
+        then putStr "\nNao ha alunos cadastrados"
+        else do
+          let alunos = Map.toList mapaAlunos
+          putStr "\n--- Lista de Alunos ---"
+          mapM_ (\(matricula, aluno) -> do
+                let nome = getNomeAluno aluno
+                putStrLn $ show matricula ++ " - " ++ nome ++ "\n"
+                ) alunos
+
+      putStr "\nPressione Enter para continuar..."
+      hFlush stdout
+      _ <- getLine
+          
       menuPrincipal sistema
     "6" -> do
-      putStrLn "\n--- Lista de Professores ---"
-      print (getProfessores sistema)
+      let mapaProf = _professores sistema
+      if Map.null mapaProf
+        then putStr "\nNao ha professores cadastrados"
+        else do
+          putStrLn "\n--- Lista de Professores ---\n"
+          let professores = Map.toList mapaProf
+          mapM_(\(pos, (matricula, professor)) -> do
+            let nome = getNomeProfessor professor
+            let departamento = getDepartamentoProfessor professor
+            putStrLn $ show pos ++ ". "++ show matricula ++ " | " ++ nome ++ " - Dep: " ++ departamento ++ "\n"
+            ) (zip[1..] professores)
+
+      putStr "\nPressione Enter para continuar..."
+      hFlush stdout
+      _ <- getLine
+      
       menuPrincipal sistema
     "7" -> do
       putStrLn "Salvando alterações..."
