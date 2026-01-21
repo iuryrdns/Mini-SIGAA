@@ -135,7 +135,7 @@ drawFeedback st = case st^.mensagemErro of
 drawAgenda :: AppState -> Widget Name
 drawAgenda st =
     let sis = st^.sistema
-        -- Buscamos o Map de disciplinas e a lista de turmas
+
         mapDiscs = _disciplinas sis
         turmas = M.elems (_turmas sis)
         
