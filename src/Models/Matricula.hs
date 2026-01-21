@@ -9,7 +9,7 @@ import Data.Aeson (ToJSON, FromJSON)
 data Matricula = Matricula
   { _idAluno     :: Int
   , _idTurma     :: Int
-  , _craNoMomento :: Float -- Importante guardar o CRA que o aluno tinha ao pedir
+  , _craNoMomento :: Float
   , _status       :: StatusMatricula
   } deriving (Show, Eq, Generic, ToJSON, FromJSON)
 

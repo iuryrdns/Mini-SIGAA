@@ -44,7 +44,6 @@ criarAluno matricula nome curso cra = Aluno {
     _disciplinasConcluidas = []
 }
 
--- Funções de acesso
 getMatriculaAluno :: Aluno -> Int
 getMatriculaAluno = _matricula
 

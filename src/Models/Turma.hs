@@ -22,11 +22,10 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 import Models.Aluno (Aluno)
 
--- Definimos o Dia com Show customizado ou simples
+
 data Dia = Segunda | Terca | Quarta | Quinta | Sexta
     deriving (Eq, Enum, Bounded, Generic, ToJSON, FromJSON)
 
--- Instância de Show manual para garantir que o texto na agenda fique bonito
 instance Show Dia where
     show Segunda = "Segunda"
     show Terca   = "Terca"
@@ -38,8 +37,8 @@ data Turma = Turma
   { _codigo            :: Int
   , _matriculaProfessor :: Int
   , _disciplina        :: String
-  , _dia               :: Dia     -- Mudança: Dia separado
-  , _hora              :: String  -- Mudança: Hora separada
+  , _dia               :: Dia    
+  , _hora              :: String  
   , _alunos            :: [Aluno]
   , _qtdMaxAlunos      :: Int
   }
@@ -66,7 +65,6 @@ criarTurma codigo professor disciplina dia hora qtdAlunos =
     , _alunos = []
     }
 
--- Getters atualizados
 getDiaTurma :: Turma -> Dia
 getDiaTurma = _dia
 
@@ -76,7 +74,6 @@ getHoraTurma = _hora
 getHorarioTurma :: Turma -> (Dia, String)
 getHorarioTurma t = (_dia t, _hora t)
 
--- Demais funções permanecem iguais
 getCodigoTurma :: Turma -> Int
 getCodigoTurma = _codigo
 
