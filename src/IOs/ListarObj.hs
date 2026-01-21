@@ -19,23 +19,3 @@ listarAlunoIO sistema = do
     putStrLn "\nPressione Enter para continuar..."
     _ <- getLine
     return ()
-
-listarTurmasIO :: Sistema -> IO ()
-listarTurmasIO sistema = do
-    let mapaTurmas = _turmas sistema
-    if Map.null mapaTurmas
-        then putStrLn "Não há turmas cadastradas"
-        else do
-            let turmas = Map.toList mapaTurmas
-            mapM_ (\(codigo, turma) -> do
-                let disciplina = getDisciplinaTurma turma
-                let horario = getHorarioTurma turma
-                let nAlunos = length (getAlunosTurma turma)
-                let totalAlunos = getCapacidadeTurma turma
-                putStrLn $
-                 show codigo ++ " - " ++ disciplina ++ " (" ++ horario ++ ") - " ++ 
-                 "Alunos/Capacidade: " ++ show nAlunos ++ "/" ++ show totalAlunos
-                ) turmas
-    putStrLn "\nPressione Enter para continuar..."
-    _ <- getLine
-    return ()
