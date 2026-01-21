@@ -153,11 +153,15 @@ menuPrincipal sistema = do
       hFlush stdout
       horario <- getLine
 
+      putStr "Sala: "
+      hFlush stdout
+      sala <- getLine
+
       putStr "Quantidade MAX de alunos: "
       hFlush stdout
       qtdAlunos <- getLine
 
-      let novaTurma = criarTurma (read codigoTurma) (read professorDisciplina) disciplina horario (read qtdAlunos)
+      let novaTurma = criarTurma (read codigoTurma) (read professorDisciplina) disciplina horario sala (read qtdAlunos)
 
       case cadastrarTurma novaTurma sistema of
         Left erro -> do
