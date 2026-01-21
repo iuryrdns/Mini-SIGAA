@@ -1,5 +1,5 @@
-module Models.Turma(Turma, getCodigoTurma, getAlunosTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, adicionarAlunoTurma, criarTurma, temVagaTurma) where
-
+module Models.Turma(Turma, getCapacidadeTurma, getCodigoTurma, getAlunosTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, adicionarAlunoTurma, criarTurma, temVagaTurma) where
+--Paulo adicionou o getCapacidadeTurma na parte de exportação para teste da IO
 import Models.Professor
 import Models.Aluno
 import Models.Disciplina
@@ -45,3 +45,7 @@ getAlunosTurma = _alunos
 
 temVagaTurma :: Turma -> Bool
 temVagaTurma turma = length (_alunos turma) < _qtdMaxAlunos turma
+
+-- Paulo fez as alterações abaixo para testar a IO
+getCapacidadeTurma :: Turma -> Int
+getCapacidadeTurma = _qtdMaxAlunos
