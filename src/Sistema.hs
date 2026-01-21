@@ -1,10 +1,12 @@
 module Sistema where
 
-import Data.Map as Map (Map, empty, insert, member, (!), null, toList)
+import Data.Map as Map (Map, empty, insert, member, null, toList, union, (!))
+import qualified Data.Map as M
 import Models.Aluno (Aluno, getMatriculaAluno, getNomeAluno)
 import Models.Disciplina (Disciplina, getCodigoDisciplina, getNomeDisciplina)
+import Models.Horario (temInterseccao)
 import Models.Professor (Professor, getMatriculaProfessor)
-import Models.Turma (Turma, getCodigoTurma, temVagaTurma, getDisciplinaTurma, getProfessorTurma)
+import Models.Turma (Turma, getCodigoTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, getSalaTurma, temVagaTurma)
 import System.Directory (doesDirectoryExist, doesFileExist)
 import Text.Read (readMaybe)
 
@@ -34,27 +36,32 @@ sistemaVazio =
       _fase = 0
     }
 
+efetivarAlteracoes :: Sistema -> Sistema
+efetivarAlteracoes sistema =
+  sistema
+    { _turmas = Map.union (_turmas sistema) (_cadastroDeTurmas sistema),
+      _cadastroDeTurmas = Map.empty
+    }
+
 cadastrar :: (Ord i) => (v -> i) -> (Sistema -> Map.Map i v) -> (Map.Map i v -> Sistema -> Sistema) -> String -> v -> Sistema -> Either String Sistema
 cadastrar getId getMap updateSystem nomeEntidade item sistema =
-  let
-    chave = getId item
-    mapaAtual = getMap sistema
-  in
-    if Map.member chave mapaAtual then
-      Left (nomeEntidade ++ " ja Cadastrado!")
-    else
-      let
-        novoMapa = Map.insert chave item mapaAtual
-        novoSistema = updateSystem novoMapa sistema
-      in
-        Right novoSistema
+  let chave = getId item
+      mapaAtual = getMap sistema
+   in if Map.member chave mapaAtual
+        then
+          Left (nomeEntidade ++ " ja Cadastrado!")
+        else
+          let novoMapa = Map.insert chave item mapaAtual
+              novoSistema = updateSystem novoMapa sistema
+           in Right novoSistema
 
 abrirPeriodoMatriculas :: Sistema -> Either String Sistema
 abrirPeriodoMatriculas sistema =
-  if _fase sistema == 1 then
-    Left "Matriculas ja estao abertas"
-  else
-    Right sistema {_fase = 1}
+  if _fase sistema == 1
+    then
+      Left "Matriculas ja estao abertas"
+    else
+      Right sistema {_fase = 1}
 
 realizarMatricula :: Int -> Int -> Sistema -> Either String Sistema
 realizarMatricula matricula idTurma sistema
@@ -62,7 +69,7 @@ realizarMatricula matricula idTurma sistema
   | not (Map.member idTurma (_turmas sistema)) = Left "Turma não cadastrada"
   | not (temVagaTurma turmaEncontrada) = Left "Turma sem Vaga!"
   | otherwise =
-    cadastrar (const matricula) _matriculas (\m s -> s {_matriculas = m}) "Matricula" idTurma sistema
+      cadastrar (const matricula) _matriculas (\m s -> s {_matriculas = m}) "Matricula" idTurma sistema
   where
     turmaEncontrada = _turmas sistema ! idTurma
 
@@ -80,14 +87,14 @@ cadastrarTurma turma sistema
   | not (Map.member (getProfessorTurma turma) (_professores sistema)) = Left "Professor não existe"
   | not (Map.member (getDisciplinaTurma turma) (_disciplinas sistema)) = Left "Disciplina não existe"
   | otherwise =
-    cadastrar getCodigoTurma _turmas (\m s -> s {_cadastroDeTurmas = m}) "Turma" turma sistema
+      cadastrar getCodigoTurma _turmas (\m s -> s {_cadastroDeTurmas = m}) "Turma" turma sistema
 
 verificarRequisitos :: [String] -> Sistema -> Either String [String]
-verificarRequisitos requisistos sistema = mapM verificar requisistos
+verificarRequisitos requisitos sistema = mapM verificar requisitos
   where
     mapaDisciplinas = _disciplinas sistema
     verificar codigo =
-        if Map.member codigo mapaDisciplinas
+      if Map.member codigo mapaDisciplinas
         then Right codigo
         else Left ("A disciplina requisito '" ++ codigo ++ "' nao existe!")
 
@@ -103,6 +110,9 @@ getDisciplinas = _disciplinas
 getTurmas :: Sistema -> Map.Map Int Turma
 getTurmas = _turmas
 
+getTurmasCadastradas :: Sistema -> Map.Map Int Turma
+getTurmasCadastradas = _cadastroDeTurmas
+
 getFase :: Sistema -> Int
 getFase = _fase
 
@@ -113,19 +123,23 @@ getMatriculasRealizadas sistema
   where
     listaMatriculas = Map.toList (_matriculas sistema)
 
-    lista = zip [1..] listaMatriculas
+    lista = zip [1 ..] listaMatriculas
 
     montarLinha (idx, (idAluno, idTurma)) =
-      let
-        aluno = _alunos sistema ! idAluno
-        turma = _turmas sistema ! idTurma
-        codDisc = getDisciplinaTurma turma
-        disciplina = _disciplinas sistema ! codDisc
-        
-        nomeAluno   = getNomeAluno aluno
-        matrAluno   = show idAluno
-        nomeDisc  = getNomeDisciplina disciplina
-        codTurma  = show (getCodigoTurma turma)
-      in
-        show idx ++ ". " ++ nomeAluno ++ " - " ++ matrAluno ++ ": " ++ nomeDisc ++ " " ++ codTurma
+      let aluno = _alunos sistema ! idAluno
+          turma = _turmas sistema ! idTurma
+          codDisc = getDisciplinaTurma turma
+          disciplina = _disciplinas sistema ! codDisc
+
+          nomeAluno = getNomeAluno aluno
+          matrAluno = show idAluno
+          nomeDisc = getNomeDisciplina disciplina
+          codTurma = show (getCodigoTurma turma)
+       in show idx ++ ". " ++ nomeAluno ++ " - " ++ matrAluno ++ ": " ++ nomeDisc ++ " " ++ codTurma
     relatorioMatriculas = unlines (map montarLinha lista)
+
+getTurmasConflitantes :: Sistema -> [(Turma, Turma)]
+getTurmasConflitantes sistema =
+  let turmas = M.elems (_cadastroDeTurmas sistema)
+   in [ (t1, t2) | t1 <- turmas, t2 <- turmas, getCodigoTurma t1 < getCodigoTurma t2, getSalaTurma t1 /= getSalaTurma t2, temInterseccao (getHorarioTurma t1) (getHorarioTurma t2)
+      ]

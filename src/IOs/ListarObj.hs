@@ -29,7 +29,7 @@ listarTurmasIO sistema = do
             let turmas = Map.toList mapaTurmas
             mapM_ (\(codigo, turma) -> do
                 let disciplina = getDisciplinaTurma turma
-                let horario = getHorarioTurma turma
+                let horario = show (getHorarioTurma turma)
                 let nAlunos = length (getAlunosTurma turma)
                 let totalAlunos = getCapacidadeTurma turma
                 putStrLn $

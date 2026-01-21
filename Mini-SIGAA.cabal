@@ -7,6 +7,7 @@ library
                     , Models.Professor
                     , Models.Disciplina
                     , Models.Turma
+                    , Models.Horario
                     , IOs.ListarObj
                     , Sistema
                     , Utils.Database
