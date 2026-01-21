@@ -14,6 +14,7 @@ data Sistema = Sistema
     _disciplinas :: Map.Map String Disciplina,
     _matriculas :: Map.Map Int Int,
     _turmas :: Map.Map Int Turma,
+    _cadastroDeTurmas :: Map.Map Int Turma,
     _fase :: Int
   }
   deriving (Show, Read)
@@ -29,6 +30,7 @@ sistemaVazio =
       _disciplinas = Map.empty,
       _matriculas = Map.empty,
       _turmas = Map.empty,
+      _cadastroDeTurmas = Map.empty,
       _fase = 0
     }
 
@@ -78,7 +80,7 @@ cadastrarTurma turma sistema
   | not (Map.member (getProfessorTurma turma) (_professores sistema)) = Left "Professor não existe"
   | not (Map.member (getDisciplinaTurma turma) (_disciplinas sistema)) = Left "Disciplina não existe"
   | otherwise =
-    cadastrar getCodigoTurma _turmas (\m s -> s {_turmas = m}) "Turma" turma sistema
+    cadastrar getCodigoTurma _turmas (\m s -> s {_cadastroDeTurmas = m}) "Turma" turma sistema
 
 verificarRequisitos :: [String] -> Sistema -> Either String [String]
 verificarRequisitos requisistos sistema = mapM verificar requisistos
