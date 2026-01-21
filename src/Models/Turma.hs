@@ -1,32 +1,47 @@
-module Models.Turma(Turma, getCodigoTurma, getAlunosTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, adicionarAlunoTurma, criarTurma, temVagaTurma) where
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
-import Models.Professor
-import Models.Aluno
-import Models.Disciplina
+module Models.Turma
+  ( Turma
+  , getCodigoTurma
+  , getAlunosTurma
+  , getDisciplinaTurma
+  , getHorarioTurma
+  , getProfessorTurma
+  , adicionarAlunoTurma
+  , criarTurma
+  , temVagaTurma
+  ) where
 
-data Turma = Turma{ 
-  _codigo :: Int,
-  _matriculaProfessor :: Int,
-  _disciplina :: String,
-  _horario :: String,
-  _alunos :: [Aluno],
-  _qtdMaxAlunos :: Int
-  } deriving (Show, Read, Eq)
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON, FromJSON)
 
-criarTurma :: Int -> Int -> String -> String -> Int -> Turma 
-criarTurma codigo professor disciplina horario qtdAlunos = Turma {
-  _codigo = codigo,
-  _matriculaProfessor = professor,
-  _disciplina = disciplina,
-  _horario = horario,
-  _qtdMaxAlunos = qtdAlunos,
-  _alunos = []
-}
+import Models.Aluno (Aluno)
+
+data Turma = Turma
+  { _codigo :: Int
+  , _matriculaProfessor :: Int
+  , _disciplina :: String
+  , _horario :: String
+  , _alunos :: [Aluno]
+  , _qtdMaxAlunos :: Int
+  }
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
+criarTurma :: Int -> Int -> String -> String -> Int -> Turma
+criarTurma codigo professor disciplina horario qtdAlunos =
+  Turma
+    { _codigo = codigo
+    , _matriculaProfessor = professor
+    , _disciplina = disciplina
+    , _horario = horario
+    , _qtdMaxAlunos = qtdAlunos
+    , _alunos = []
+    }
 
 adicionarAlunoTurma :: Turma -> Aluno -> Turma
-adicionarAlunoTurma turma aluno = turma {
-  _alunos = _alunos turma ++ [aluno]
-}
+adicionarAlunoTurma turma aluno =
+  turma { _alunos = _alunos turma ++ [aluno] }
 
 getCodigoTurma :: Turma -> Int
 getCodigoTurma = _codigo
@@ -44,4 +59,5 @@ getAlunosTurma :: Turma -> [Aluno]
 getAlunosTurma = _alunos
 
 temVagaTurma :: Turma -> Bool
-temVagaTurma turma = length (_alunos turma) < _qtdMaxAlunos turma
+temVagaTurma turma =
+  length (_alunos turma) < _qtdMaxAlunos turma

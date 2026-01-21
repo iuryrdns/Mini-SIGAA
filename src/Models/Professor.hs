@@ -1,20 +1,34 @@
-module Models.Professor(Professor, getMatriculaProfessor, getDepartamentoProfessor, getFormacaoProfessor, getNomeProfessor, criarProfessor) where
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
-data Professor = Professor{ 
-  _matricula :: Int, 
-  _nome :: String,
-  _departamento :: String,
-  _formacao :: String
-  } deriving (Show, Read, Eq)
+module Models.Professor
+  ( Professor
+  , getMatriculaProfessor
+  , getDepartamentoProfessor
+  , getFormacaoProfessor
+  , getNomeProfessor
+  , criarProfessor
+  ) where
+
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON, FromJSON)
+
+data Professor = Professor
+  { _matricula :: Int
+  , _nome :: String
+  , _departamento :: String
+  , _formacao :: String
+  }
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 criarProfessor :: Int -> String -> String -> String -> Professor
-criarProfessor matricula nome departamento formacao = Professor {
-  _matricula = matricula,
-  _nome = nome,
-  _departamento = departamento,
-  _formacao = formacao
-}
-
+criarProfessor matricula nome departamento formacao =
+  Professor
+    { _matricula = matricula
+    , _nome = nome
+    , _departamento = departamento
+    , _formacao = formacao
+    }
 
 getMatriculaProfessor :: Professor -> Int
 getMatriculaProfessor = _matricula
@@ -27,4 +41,3 @@ getDepartamentoProfessor = _departamento
 
 getFormacaoProfessor :: Professor -> String
 getFormacaoProfessor = _formacao
-

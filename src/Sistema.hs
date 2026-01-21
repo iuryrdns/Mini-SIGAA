@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+
 module Sistema where
 
 import Data.Map as Map (Map, empty, insert, member, (!))
@@ -5,8 +8,10 @@ import Models.Aluno (Aluno, getMatriculaAluno)
 import Models.Disciplina (Disciplina, getCodigoDisciplina)
 import Models.Professor (Professor, getMatriculaProfessor)
 import Models.Turma (Turma, getCodigoTurma, temVagaTurma, getDisciplinaTurma, getProfessorTurma)
-import System.Directory (doesDirectoryExist, doesFileExist)
-import Text.Read (readMaybe)
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON, FromJSON, decode, encode)
+import System.Directory (doesFileExist)
+import qualified Data.ByteString.Lazy as B
 
 data Sistema = Sistema
   { _alunos :: Map.Map Int Aluno,
@@ -16,10 +21,10 @@ data Sistema = Sistema
     _turmas :: Map.Map Int Turma,
     _fase :: Int
   }
-  deriving (Show, Read)
+  deriving (Show, Generic, ToJSON, FromJSON)
 
-dbPath :: String
-dbPath = "dados.db"
+dbPath :: FilePath
+dbPath = "dados.json"
 
 sistemaVazio :: Sistema
 sistemaVazio =
@@ -34,18 +39,11 @@ sistemaVazio =
 
 cadastrar :: (Ord i) => (v -> i) -> (Sistema -> Map.Map i v) -> (Map.Map i v -> Sistema -> Sistema) -> String -> v -> Sistema -> Either String Sistema
 cadastrar getId getMap updateSystem nomeEntidade item sistema =
-  let
-    chave = getId item
-    mapaAtual = getMap sistema
-  in
-    if Map.member chave mapaAtual then
-      Left (nomeEntidade ++ " ja Cadastrado!")
-    else
-      let
-        novoMapa = Map.insert chave item mapaAtual
-        novoSistema = updateSystem novoMapa sistema
-      in
-        Right novoSistema
+  let chave = getId item
+      mapaAtual = getMap sistema
+  in if Map.member chave mapaAtual 
+     then Left (nomeEntidade ++ " ja Cadastrado!")
+     else Right $ updateSystem (Map.insert chave item mapaAtual) sistema
 
 abrirPeriodoMatriculas :: Sistema -> Either String Sistema
 abrirPeriodoMatriculas sistema =
@@ -103,3 +101,17 @@ getTurmas = _turmas
 
 getFase :: Sistema -> Int
 getFase = _fase
+
+-- Persistência
+carregarSistema :: IO Sistema
+carregarSistema = do
+  existe <- doesFileExist dbPath
+  if not existe then return sistemaVazio
+  else do
+    conteudo <- B.readFile dbPath
+    case decode conteudo of
+      Just s -> return s
+      Nothing -> return sistemaVazio
+
+salvarSistema :: Sistema -> IO ()
+salvarSistema s = B.writeFile dbPath (encode s)
