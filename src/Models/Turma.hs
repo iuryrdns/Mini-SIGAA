@@ -11,6 +11,7 @@ module Models.Turma
   , adicionarAlunoTurma
   , criarTurma
   , temVagaTurma
+  , getCapacidadeTurma
   ) where
 
 import GHC.Generics (Generic)
@@ -59,5 +60,8 @@ getAlunosTurma :: Turma -> [Aluno]
 getAlunosTurma = _alunos
 
 temVagaTurma :: Turma -> Bool
-temVagaTurma turma =
-  length (_alunos turma) < _qtdMaxAlunos turma
+temVagaTurma turma = length (_alunos turma) < _qtdMaxAlunos turma
+
+-- Paulo fez as alterações abaixo para testar a IO
+getCapacidadeTurma :: Turma -> Int
+getCapacidadeTurma = _qtdMaxAlunos

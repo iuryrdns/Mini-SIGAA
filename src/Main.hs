@@ -1,6 +1,27 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Models.Aluno (criarAluno)
+import Models.Disciplina (criarDisciplina)
+import Models.Professor (criarProfessor)
+import Sistema
+    ( Sistema(_matriculas),
+      abrirPeriodoMatriculas,
+      cadastrarAluno,
+      cadastrarDisciplina,
+      cadastrarProfessor,
+      getAlunos,
+      getFase,
+      getProfessores,
+      realizarMatricula,
+      sistemaVazio,
+      verificarRequisitos,
+      cadastrarTurma,
+      getMatriculasRealizadas,
+      carregarSistema )
+import System.IO (hFlush, stdout)
+import Models.Turma (criarTurma)
+
 import Brick
 import Brick.Widgets.Edit
 import qualified Brick.Widgets.List as L
@@ -14,7 +35,6 @@ import Brick.AttrMap (attrName)
 import BrickMenu.Tipos
 import BrickMenu.UI (drawUI)
 import BrickMenu.Events (handleEvent)
-import Sistema (carregarSistema)
 import Foreign.C (eDEADLK)
 
 app :: App AppState e Name
@@ -22,7 +42,7 @@ app = App { appDraw = drawUI
           , appChooseCursor = focusRingCursor (^.foco)
           , appHandleEvent = handleEvent
           , appStartEvent = return ()
-          , appAttrMap = const $ attrMap V.defAttr [ (L.listSelectedAttr, V.black `on` V.cyan)   
+          , appAttrMap = const $ attrMap V.defAttr [ (L.listSelectedAttr, V.black `on` V.cyan)
               , (attrName "logo", fg V.brightBlue `V.withStyle` V.bold)
               ]
           }
@@ -30,11 +50,11 @@ app = App { appDraw = drawUI
 main :: IO ()
 main = do
     sistema <- carregarSistema
-    let todosOsCampos = [EditNomeAluno, EditMatricula, EditCurso, EditCRA, EditMatriculaProfessor, EditNomeProfessor, EditDepto, 
+    let todosOsCampos = [EditNomeAluno, EditMatricula, EditCurso, EditCRA, EditMatriculaProfessor, EditNomeProfessor, EditDepto,
             EditFormacao, EditCodigoDisciplina, EditNomeDisciplina ,EditCodTurma, EditProfTurma, EditDiscTurma, EditHorarioTurma, EditMaxAlunosTurma]
     let initialForms = M.fromList [ (n, editor n (Just 1) "") | n <- todosOsCampos ]
-    
-    let initialState = AppState 
+
+    let initialState = AppState
           { _sistema     = sistema
           , _listaMenu   = L.list MenuPrincipal (Vec.fromList ["Cadastrar Aluno", "Cadastrar Professor", "Cadastrar Disciplina", "Cadastrar Turma", "Listar Alunos"]) 1
           , _listaMenuAlunos = L.list ListaAlunos Vec.empty 1
