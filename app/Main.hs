@@ -178,23 +178,17 @@ menuPrincipal sistema = do
         then putStr "\nNao ha alunos cadastrados"
         else do
             let alunos = Map.toList mapaAlunos
-            
-            -- Cabeçalho
             putStrLn "\n========================================================"
             putStrLn "                  LISTA DE ALUNOS"
             putStrLn "========================================================"
             putStrLn ""
-            
-            -- Títulos das colunas
             putStrLn "  #   | Matrícula | Nome                    | Curso"
             putStrLn " ---  +-----------+-------------------------+-----------"
-            
-            -- Linhas de dados
+
             mapM_ (\(pos, (matricula, aluno)) -> do
                 let nome = getNomeAluno aluno
                 let curso = getCursoAluno aluno
-                
-                -- Formatação inline sem funções extras
+
                 let num = take 3 (" " ++ show pos ++ ". ")
                 let mat = take 10 ("| " ++ show matricula ++ "        ")
                 let nom = take 24 ("| " ++ nome ++ repeat ' ')
@@ -202,8 +196,7 @@ menuPrincipal sistema = do
                 
                 putStrLn $ " " ++ num ++ "  " ++ mat ++ "  " ++ nom ++ "  " ++ cur
                 ) (zip [1..] alunos)
-            
-            -- Total
+
             putStrLn ""
             putStrLn $ "Total: " ++ show (length alunos) ++ " aluno(s)"
 
@@ -217,13 +210,26 @@ menuPrincipal sistema = do
       if Map.null mapaProf
         then putStr "\nNao ha professores cadastrados"
         else do
-          putStrLn "\n--- Lista de Professores ---\n"
+          putStrLn "\n========================================================"
+          putStrLn "                 LISTA DE PROFESSORES"
+          putStrLn "========================================================"
+          putStrLn ""
+          putStrLn "  #   | Matrícula | Nome                    | Departamento"
+          putStrLn " ---  +-----------+-------------------------+--------------"
+
           let professores = Map.toList mapaProf
-          mapM_(\(pos, (matricula, professor)) -> do
-            let nome = getNomeProfessor professor
-            let departamento = getDepartamentoProfessor professor
-            putStrLn $ show pos ++ ". "++ show matricula ++ " | " ++ nome ++ " - Dep: " ++ departamento ++ "\n"
-            ) (zip[1..] professores)
+
+          mapM_ (\(pos, (matricula, professor)) -> do
+                let nome = getNomeProfessor professor
+                let dep = getDepartamentoProfessor professor
+
+                let num = take 3 (" " ++ show pos ++ ". ")
+                let mat = take 10 ("| " ++ show matricula ++ "        ")
+                let nom = take 24 ("| " ++ nome ++ repeat ' ')
+                let d = take 12 ("| " ++ dep ++ repeat ' ')
+                
+                putStrLn $ " " ++ num ++ "  " ++ mat ++ "  " ++ nom ++ "  " ++ d
+                ) (zip [1..] professores)
 
       putStr "\nPressione Enter para continuar..."
       hFlush stdout
