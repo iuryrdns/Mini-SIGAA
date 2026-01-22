@@ -1,12 +1,9 @@
 module Models.Turma (Turma, getCapacidadeTurma, getCodigoTurma, getAlunosTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, adicionarAlunoTurma, criarTurma, getSalaTurma) where
 
--- Paulo adicionou o getCapacidadeTurma na parte de exportação para teste da IO
-
 import Models.Aluno
 import Models.Disciplina
-import Models.Horario
 import Models.Professor
-import Models.Types (Codigo, Matricula)
+import Models.Types (Codigo, Horario, Matricula)
 
 data Turma = Turma
   { _codigo :: Int,
