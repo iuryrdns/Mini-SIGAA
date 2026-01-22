@@ -1,9 +1,9 @@
 module Main (main) where
 
-import Models.Aluno (criarAluno, getNomeAluno)
+import Models.Aluno (criarAluno, getNomeAluno, getCursoAluno)
 import Models.Disciplina (criarDisciplina)
 import Models.Professor (criarProfessor, getNomeProfessor, getDepartamentoProfessor)
-import Sistema (Sistema (_matriculas, _alunos, _professores), abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos, cadastrarTurma, getMatriculasRealizadas)
+import Sistema (Sistema (_matriculas), abrirPeriodoMatriculas, cadastrarAluno, cadastrarDisciplina, cadastrarProfessor, getAlunos, getFase, getProfessores, realizarMatricula, sistemaVazio, verificarRequisitos, cadastrarTurma, getMatriculasRealizadas)
 import System.IO (hFlush, stdout)
 import Utils.Database (carregarSistema, salvarSistema)
 import Models.Turma (criarTurma)
@@ -173,16 +173,39 @@ menuPrincipal sistema = do
           menuPrincipal novoSistema
 
     "5" -> do
-      let mapaAlunos = _alunos sistema
+      let mapaAlunos = getAlunos sistema
       if Map.null mapaAlunos
         then putStr "\nNao ha alunos cadastrados"
         else do
-          let alunos = Map.toList mapaAlunos
-          putStr "\n--- Lista de Alunos ---"
-          mapM_ (\(matricula, aluno) -> do
+            let alunos = Map.toList mapaAlunos
+            
+            -- Cabeçalho
+            putStrLn "\n========================================================"
+            putStrLn "                  LISTA DE ALUNOS"
+            putStrLn "========================================================"
+            putStrLn ""
+            
+            -- Títulos das colunas
+            putStrLn "  #   | Matrícula | Nome                    | Curso"
+            putStrLn " ---  +-----------+-------------------------+-----------"
+            
+            -- Linhas de dados
+            mapM_ (\(pos, (matricula, aluno)) -> do
                 let nome = getNomeAluno aluno
-                putStrLn $ show matricula ++ " - " ++ nome ++ "\n"
-                ) alunos
+                let curso = getCursoAluno aluno
+                
+                -- Formatação inline sem funções extras
+                let num = take 3 (" " ++ show pos ++ ". ")
+                let mat = take 10 ("| " ++ show matricula ++ "        ")
+                let nom = take 24 ("| " ++ nome ++ repeat ' ')
+                let cur = take 12 ("| " ++ curso ++ repeat ' ')
+                
+                putStrLn $ " " ++ num ++ "  " ++ mat ++ "  " ++ nom ++ "  " ++ cur
+                ) (zip [1..] alunos)
+            
+            -- Total
+            putStrLn ""
+            putStrLn $ "Total: " ++ show (length alunos) ++ " aluno(s)"
 
       putStr "\nPressione Enter para continuar..."
       hFlush stdout
@@ -190,7 +213,7 @@ menuPrincipal sistema = do
           
       menuPrincipal sistema
     "6" -> do
-      let mapaProf = _professores sistema
+      let mapaProf = getProfessores sistema
       if Map.null mapaProf
         then putStr "\nNao ha professores cadastrados"
         else do
