@@ -6,10 +6,9 @@ import qualified Data.Map as M
 import Data.Ord (Down (..), comparing)
 import Models.Aluno (Aluno, getCraAluno, getCursoAluno, getDisciplinasConcluidas, getMatriculaAluno, getNomeAluno)
 import Models.Disciplina (Disciplina, getCodigoDisciplina, getCursosDisciplina, getNomeDisciplina, getRequisitosDisciplina)
-import Models.Horario (temInterseccao)
 import Models.Professor (Professor, getMatriculaProfessor)
 import Models.Turma (Turma, getCapacidadeTurma, getCodigoTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, getSalaTurma)
-import Models.Types (Codigo (..), Curso, Matricula (..), Nome, unCRA, unCodigo, unMatricula, unNome)
+import Models.Types (Codigo (..), Curso, Matricula (..), Nome, horarioTemInterseccao, unCRA, unCodigo, unMatricula, unNome)
 import System.Directory (doesDirectoryExist, doesFileExist)
 import Text.Read (readMaybe)
 
@@ -36,7 +35,7 @@ sistemaVazio =
       _matriculas = [],
       _turmas = Map.empty,
       _cadastroDeTurmas = Map.empty,
-      _fase = 0
+      _fase = 2
     }
 
 efetivarAlteracoes :: Sistema -> Sistema
@@ -66,6 +65,16 @@ abrirPeriodoMatriculas sistema =
     else
       Right sistema {_fase = 1}
 
+iniciarNovoSemestre :: Sistema -> Either String Sistema
+iniciarNovoSemestre sistema =
+  case _fase sistema of
+    0 -> do
+      Left "Sistema ja esta em fase de iniciamento!"
+    1 -> do
+      Left "Sistema ainda esta em fase de matricula"
+    2 -> do
+      Right sistema {_fase = 0}
+
 realizarMatricula :: Matricula -> Int -> Sistema -> Either String Sistema
 realizarMatricula matricula idTurma sistema
   | not (Map.member matricula (_alunos sistema)) = Left "Aluno não cadastrado"
@@ -85,7 +94,7 @@ realizarMatricula matricula idTurma sistema
     requisitos = map unCodigo (getRequisitosDisciplina disciplina)
 
 finalizarPeriodoMatriculas :: Sistema -> Sistema
-finalizarPeriodoMatriculas = 
+finalizarPeriodoMatriculas = id
 
 cadastrarAluno :: Aluno -> Sistema -> Either String Sistema
 cadastrarAluno = cadastrar getMatriculaAluno _alunos (\m s -> s {_alunos = m}) "Aluno"
@@ -156,7 +165,7 @@ getMatriculasRealizadas sistema
 getTurmasConflitantes :: Sistema -> [(Turma, Turma)]
 getTurmasConflitantes sistema =
   let turmas = M.elems (_cadastroDeTurmas sistema)
-   in [ (t1, t2) | t1 <- turmas, t2 <- turmas, getCodigoTurma t1 < getCodigoTurma t2, getSalaTurma t1 /= getSalaTurma t2, temInterseccao (getHorarioTurma t1) (getHorarioTurma t2)
+   in [ (t1, t2) | t1 <- turmas, t2 <- turmas, getCodigoTurma t1 < getCodigoTurma t2, getSalaTurma t1 /= getSalaTurma t2, horarioTemInterseccao (getHorarioTurma t1) (getHorarioTurma t2)
       ]
 
 compararAlunos :: Sistema -> Matricula -> Matricula -> Ordering

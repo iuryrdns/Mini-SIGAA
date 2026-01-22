@@ -30,4 +30,3 @@ salvarSistema sistema = do
   let temp = dbPath ++ ".tmp"
   writeFile temp (show sistema)
   renameFile temp dbPath
-  putStrLn "Sistema salvo."

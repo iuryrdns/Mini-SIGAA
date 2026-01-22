@@ -7,9 +7,9 @@ library
                     , Models.Professor
                     , Models.Disciplina
                     , Models.Turma
-                    , Models.Horario
                     , Models.Types
                     , IOs.ListarObj
+                    , IOs.Relatorio
                     , Sistema
                     , Utils.Database
     build-depends:    directory ^>=1.3.8.5, containers ^>=0.6.7, text ^>=2.0.2, base

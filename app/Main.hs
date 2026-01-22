@@ -1,14 +1,14 @@
 module Main (main) where
 
 import qualified Data.Map as Map
-import Models.Aluno (criarAluno, getCursoAluno, getNomeAluno)
+import IOs.Relatorio (gerarRelatorioGeral)
+import Models.Aluno (criarAluno, getNomeAluno)
 import Models.Disciplina (criarDisciplina, getNomeDisciplina)
-import Models.Horario (lerHorario, temInterseccao)
 import Models.Professor (criarProfessor, getDepartamentoProfessor, getNomeProfessor)
-import Models.Turma (criarTurma, getCodigoTurma, getHorarioTurma, getProfessorTurma, getSalaTurma)
-import Models.Types (Codigo (..), Curso (..), Matricula (..), Nome (..), mkCRA, unMatricula, unNome)
+import Models.Turma (criarTurma, getCodigoTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, getSalaTurma)
+import Models.Types (Codigo (..), Curso (..), Matricula (..), Nome (..), lerHorario, mkCRA, unMatricula, unNome)
 import Sistema
-  ( Sistema (_alunos, _disciplinas, _matriculas, _professores),
+  ( Sistema (_alunos, _disciplinas, _fase, _matriculas, _professores, _turmas),
     abrirPeriodoMatriculas,
     cadastrarAluno,
     cadastrarDisciplina,
@@ -22,6 +22,7 @@ import Sistema
     getProfessores,
     getTurmasCadastradas,
     getTurmasConflitantes,
+    iniciarNovoSemestre,
     processarMatriculas,
     realizarMatricula,
     verificarRequisitos,
@@ -37,6 +38,7 @@ main = do
   putStrLn ""
   putStrLn "--- Mini Sigaa ---"
   putStrLn "1. Iniciar novo semestre"
+  putStrLn "2. Visualizar Dados do Sistema"
   putStrLn "0. Sair"
   putStrLn ""
   putStrLn "---------------------------------------------------------"
@@ -47,7 +49,21 @@ main = do
 
   case opcao of
     "1" -> do
-      menuAlteracoesGerais sistemaInicial
+      case iniciarNovoSemestre sistemaInicial of
+        Left erro -> do
+          putStrLn erro
+          if erro == "Sistema ja esta em fase de iniciamento!"
+            then
+              menuAlteracoesGerais sistemaInicial
+            else
+              return ()
+        Right sistema -> do
+          menuAlteracoesGerais sistema
+    "2" -> do
+      putStrLn (gerarRelatorioGeral sistemaInicial)
+      putStrLn "\nPressione Enter para voltar ao menu..."
+      _ <- getLine
+      main
     "0" -> putStrLn "Saindo..."
     _ -> do
       putStrLn "Opção inválida"
@@ -386,10 +402,33 @@ menuMatricula sistema = do
 menuRematricula :: Sistema -> IO ()
 menuRematricula sistema = do
   let dados = processarMatriculas sistema
-  let matriculasDeferidas = fst dados
-  let matriculasIndeferidas = snd dados
+  let matriculasDeferidasMap = fst dados
+  let matriculasIndeferidasMap = snd dados
 
-  loopRematricula sistema
+  let matriculasDeferidas = [(m, t) | (t, ms) <- Map.toList matriculasDeferidasMap, m <- ms]
+  let matriculasIndeferidas = [(m, t) | (t, ms) <- Map.toList matriculasIndeferidasMap, m <- ms]
+
+  let sistemaAtualizado = sistema {_matriculas = matriculasDeferidas}
+
+  putStrLn "\n--- Matrículas realizadas ---"
+  if null matriculasDeferidas
+    then putStrLn "Não há nenhuma matrícula!"
+    else putStrLn (formatarMatriculas sistemaAtualizado matriculasDeferidas)
+  putStrLn "Aperte enter para continuar..."
+  hFlush stdout
+  _ <- getLine
+
+  putStrLn "\n--- Matrículas indeferidas ---"
+  putStrLn ""
+  if null matriculasIndeferidas
+    then return ()
+    else putStrLn (formatarMatriculas sistemaAtualizado matriculasIndeferidas)
+
+  putStrLn "Aperte enter para continuar..."
+  hFlush stdout
+  _ <- getLine
+
+  loopRematricula sistemaAtualizado
 
 loopRematricula :: Sistema -> IO ()
 loopRematricula sistema = do
@@ -407,7 +446,6 @@ loopRematricula sistema = do
 
   case opcao of
     "1" -> do
-      -- Reutilizando matricula pois a logica é a mesma por enquanto
       putStr "Matrícula do aluno: "
       hFlush stdout
       matricula <- getLine
@@ -416,13 +454,18 @@ loopRematricula sistema = do
       hFlush stdout
       turma <- getLine
 
-      case realizarMatricula (Matricula (read matricula)) (read turma) sistema of
-        Left erro -> do
-          putStrLn $ "\nErro: " ++ erro
+      case (readMaybe matricula, readMaybe turma) of
+        (Just matId, Just turmaId) ->
+          case realizarMatricula (Matricula matId) turmaId sistema of
+            Left erro -> do
+              putStrLn $ "\nErro: " ++ erro
+              loopRematricula sistema
+            Right novoSistema -> do
+              putStrLn "\nRematrícula cadastrada com sucesso"
+              loopRematricula novoSistema
+        _ -> do
+          putStrLn "\nErro: Dados inválidos"
           loopRematricula sistema
-        Right novoSistema -> do
-          putStrLn "\nRematrícula cadastrada com sucesso"
-          loopRematricula novoSistema
     "2" -> do
       case getMatriculasRealizadas sistema of
         Left erro -> do
@@ -444,25 +487,35 @@ loopRematricula sistema = do
 
 finalizarSistema :: Sistema -> IO ()
 finalizarSistema sistema = do
-  -- Mostrar rematriculas realizadas/indeferidas
-  case getMatriculasRealizadas sistema of
-    Right relatorio -> do
-      putStrLn "\n--- Rematrículas realizadas ---"
-      putStrLn relatorio
-      putStrLn "Aperte enter para continuar..."
-      hFlush stdout
-      _ <- getLine
-      return ()
-    Left _ -> return ()
+  let dados = processarMatriculas sistema
+  let matriculasDeferidasMap = fst dados
+  let matriculasIndeferidasMap = snd dados
+
+  let matriculasDeferidas = [(m, t) | (t, ms) <- Map.toList matriculasDeferidasMap, m <- ms]
+  let matriculasIndeferidas = [(m, t) | (t, ms) <- Map.toList matriculasIndeferidasMap, m <- ms]
+
+  let sistemaFinal = sistema {_matriculas = matriculasDeferidas, _fase = 2}
+
+  putStrLn "\n--- Rematrículas realizadas ---"
+  if null matriculasDeferidas
+    then putStrLn "Não há nenhuma matrícula!"
+    else putStrLn (formatarMatriculas sistemaFinal matriculasDeferidas)
+  putStrLn "Aperte enter para continuar..."
+  hFlush stdout
+  _ <- getLine
 
   putStrLn "\n--- Rematrículas indeferidas ---"
   putStrLn ""
+  if null matriculasIndeferidas
+    then return ()
+    else putStrLn (formatarMatriculas sistemaFinal matriculasIndeferidas)
+
   putStrLn "Aperte enter para continuar..."
   hFlush stdout
   _ <- getLine
 
   putStrLn "\n--- Panorama geral das atividades do MiniSIGAA ---"
-  putStrLn "<uma tabela bem feita mostrando todas as alterações válidas>" -- Mock conforme saida_esperada
+  putStrLn (gerarRelatorioGeral sistemaFinal)
   putStrLn ""
   putStrLn "Aperte enter para continuar..."
   hFlush stdout
@@ -473,6 +526,21 @@ finalizarSistema sistema = do
   resp <- getLine
   if resp == "y"
     then do
-      salvarSistema sistema
-      putStrLn "Sistema salvo."
+      salvarSistema sistemaFinal
+      putStrLn "Sistema salvo com sucesso!"
     else putStrLn "Alterações descartadas."
+
+formatarMatriculas :: Sistema -> [(Matricula, Int)] -> String
+formatarMatriculas sistema matriculas =
+  let lista = zip [1 ..] matriculas
+      montarLinha (idx, (idAluno, idTurma)) =
+        let aluno = (Map.!) (_alunos sistema) idAluno
+            turma = (Map.!) (_turmas sistema) idTurma
+            codDisc = getDisciplinaTurma turma
+            disciplina = (Map.!) (_disciplinas sistema) codDisc
+            nomeAluno = unNome (getNomeAluno aluno)
+            matrAluno = show (unMatricula idAluno)
+            nomeDisc = unNome (getNomeDisciplina disciplina)
+            codTurma = show (getCodigoTurma turma)
+         in show idx ++ ". " ++ nomeAluno ++ " - " ++ matrAluno ++ ": " ++ nomeDisc ++ " " ++ codTurma
+   in unlines (map montarLinha lista)
