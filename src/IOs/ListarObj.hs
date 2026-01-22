@@ -4,6 +4,7 @@ import Sistema (Sistema(..))
 import Models.Aluno (getNomeAluno)
 import qualified Data.Map as Map
 import Models.Turma (getDisciplinaTurma, getProfessorTurma, getHorarioTurma, getAlunosTurma, getCapacidadeTurma)
+import Models.Types (unMatricula, unNome, unCodigo)
 
 listarAlunoIO :: Sistema -> IO ()
 listarAlunoIO sistema = do 
@@ -13,8 +14,8 @@ listarAlunoIO sistema = do
         else do
             let listaAlunos = Map.toList mapaAlunos
             mapM_ (\(matricula, aluno) -> do
-                let nome = getNomeAluno aluno
-                putStrLn $ show matricula ++ " - " ++ nome
+                let nome = unNome (getNomeAluno aluno)
+                putStrLn $ show (unMatricula matricula) ++ " - " ++ nome
                 ) listaAlunos
     putStrLn "\nPressione Enter para continuar..."
     _ <- getLine
@@ -28,7 +29,7 @@ listarTurmasIO sistema = do
         else do
             let turmas = Map.toList mapaTurmas
             mapM_ (\(codigo, turma) -> do
-                let disciplina = getDisciplinaTurma turma
+                let disciplina = unCodigo (getDisciplinaTurma turma)
                 let horario = show (getHorarioTurma turma)
                 let nAlunos = length (getAlunosTurma turma)
                 let totalAlunos = getCapacidadeTurma turma

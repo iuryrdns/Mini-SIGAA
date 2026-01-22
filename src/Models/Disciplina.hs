@@ -1,24 +1,32 @@
-module Models.Disciplina(Disciplina, getCodigoDisciplina, getNomeDisciplina, getRequisitosDisciplina, criarDisciplina) where
+module Models.Disciplina (Disciplina, getCodigoDisciplina, getNomeDisciplina, getRequisitosDisciplina, getCursosDisciplina, criarDisciplina) where
 
-data Disciplina = Disciplina{ 
-  _codigo :: String,
-  _nome :: String,
-  _preRequisitos :: [String]
-  } deriving (Show, Read, Eq)
+import Models.Types (Codigo, Curso, Nome)
 
-criarDisciplina :: String -> String -> [String] -> Disciplina
-criarDisciplina codigo nome preRequisitos = Disciplina {
-  _codigo = codigo,
-  _nome = nome,
-  _preRequisitos = preRequisitos
-}
+data Disciplina = Disciplina
+  { _codigo :: Codigo,
+    _nome :: Nome,
+    _preRequisitos :: [Codigo],
+    _cursos :: [Curso]
+  }
+  deriving (Show, Read, Eq)
 
-getCodigoDisciplina :: Disciplina -> String
+criarDisciplina :: Codigo -> Nome -> [Codigo] -> [Curso] -> Disciplina
+criarDisciplina codigo nome preRequisitos cursos =
+  Disciplina
+    { _codigo = codigo,
+      _nome = nome,
+      _preRequisitos = preRequisitos,
+      _cursos = cursos
+    }
+
+getCodigoDisciplina :: Disciplina -> Codigo
 getCodigoDisciplina = _codigo
 
-getNomeDisciplina :: Disciplina -> String
+getNomeDisciplina :: Disciplina -> Nome
 getNomeDisciplina = _nome
 
-getRequisitosDisciplina :: Disciplina -> [String]
+getRequisitosDisciplina :: Disciplina -> [Codigo]
 getRequisitosDisciplina = _preRequisitos
 
+getCursosDisciplina :: Disciplina -> [Curso]
+getCursosDisciplina = _cursos

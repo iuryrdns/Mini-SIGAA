@@ -6,6 +6,7 @@ import Models.Disciplina (criarDisciplina, getNomeDisciplina)
 import Models.Horario (lerHorario, temInterseccao)
 import Models.Professor (criarProfessor, getDepartamentoProfessor, getNomeProfessor)
 import Models.Turma (criarTurma, getCodigoTurma, getHorarioTurma, getProfessorTurma, getSalaTurma)
+import Models.Types (Codigo (..), Curso (..), Matricula (..), Nome (..), mkCRA, unMatricula, unNome)
 import Sistema
   ( Sistema (_alunos, _disciplinas, _matriculas, _professores),
     abrirPeriodoMatriculas,
@@ -21,6 +22,7 @@ import Sistema
     getProfessores,
     getTurmasCadastradas,
     getTurmasConflitantes,
+    processarMatriculas,
     realizarMatricula,
     verificarRequisitos,
   )
@@ -90,7 +92,7 @@ menuAlteracoesGerais sistema = do
       hFlush stdout
       formacao <- getLine
 
-      let novoProf = criarProfessor (read matricula) nomeProfessor depProf formacao
+      let novoProf = criarProfessor (Matricula (read matricula)) (Nome nomeProfessor) depProf formacao
 
       case cadastrarProfessor novoProf sistema of
         Left erro -> do
@@ -114,17 +116,27 @@ menuAlteracoesGerais sistema = do
 
       putStr "CRA: "
       hFlush stdout
-      craAluno <- getLine
+      craAlunoStr <- getLine
 
-      let novoAluno = criarAluno (read matriculaAluno) nomeAluno cursoAluno (read craAluno)
+      case readMaybe craAlunoStr of
+        Just craVal ->
+          case mkCRA craVal of
+            Just cra -> do
+              let novoAluno = criarAluno (Matricula (read matriculaAluno)) (Nome nomeAluno) (Curso cursoAluno) cra
 
-      case cadastrarAluno novoAluno sistema of
-        Left erro -> do
-          putStrLn $ "\nErro: " ++ erro
+              case cadastrarAluno novoAluno sistema of
+                Left erro -> do
+                  putStrLn $ "\nErro: " ++ erro
+                  menuAlteracoesGerais sistema
+                Right novoSistema -> do
+                  putStrLn "\nAluno cadastrado com sucesso!"
+                  menuAlteracoesGerais novoSistema
+            Nothing -> do
+              putStrLn "\nErro: CRA inválido (deve ser entre 0.0 e 10.0)"
+              menuAlteracoesGerais sistema
+        Nothing -> do
+          putStrLn "\nErro: CRA deve ser um número."
           menuAlteracoesGerais sistema
-        Right novoSistema -> do
-          putStrLn "\nAluno cadastrado com sucesso!"
-          menuAlteracoesGerais novoSistema
     "3" -> do
       putStr "Codigo da Disciplina: "
       hFlush stdout
@@ -138,7 +150,12 @@ menuAlteracoesGerais sistema = do
       hFlush stdout
       entrada <- getLine
 
+      putStr "Cursos permitidos (separados por espaço): "
+      hFlush stdout
+      entradaCursos <- getLine
+
       let requisitos = words entrada
+      let cursos = map Curso (words entradaCursos)
 
       case verificarRequisitos requisitos sistema of
         Left erro -> do
@@ -146,7 +163,7 @@ menuAlteracoesGerais sistema = do
           menuAlteracoesGerais sistema
         Right _ -> do
           -- Requisitos validados
-          let novaDisciplina = criarDisciplina codigo nomeDisciplina requisitos
+          let novaDisciplina = criarDisciplina (Codigo codigo) (Nome nomeDisciplina) (map Codigo requisitos) cursos
 
           case cadastrarDisciplina novaDisciplina sistema of
             Left erro -> do
@@ -182,8 +199,7 @@ menuAlteracoesGerais sistema = do
 
       case (readMaybe codigoTurmaStr, readMaybe professorDisciplinaStr, readMaybe qtdAlunosStr) of
         (Just codigoTurma, Just professorDisciplina, Just qtdAlunos) -> do
-          let novaTurma = criarTurma codigoTurma professorDisciplina disciplina (lerHorario horario) sala qtdAlunos
-
+          let novaTurma = criarTurma codigoTurma (Matricula professorDisciplina) (Codigo disciplina) (lerHorario horario) sala qtdAlunos
           case cadastrarTurma novaTurma sistema of
             Left erro -> do
               putStrLn $ "\nErro: " ++ erro
@@ -210,15 +226,9 @@ menuAlteracoesGerais sistema = do
 
           mapM_
             ( \(pos, (matricula, professor)) -> do
-                let nome = getNomeProfessor professor
-                let dep = getDepartamentoProfessor professor
-
-                let num = take 3 (" " ++ show pos ++ ". ")
-                let mat = take 10 ("| " ++ show matricula ++ "        ")
-                let nom = take 24 ("| " ++ nome ++ repeat ' ')
-                let d = take 12 ("| " ++ dep ++ repeat ' ')
-
-                putStrLn $ " " ++ num ++ "  " ++ mat ++ "  " ++ nom ++ "  " ++ d
+                let nome = unNome (getNomeProfessor professor)
+                let departamento = getDepartamentoProfessor professor
+                putStrLn $ show pos ++ ". " ++ show (unMatricula matricula) ++ " | " ++ nome ++ " - Dep: " ++ departamento
             )
             (zip [1 ..] professores)
 
@@ -240,21 +250,11 @@ menuAlteracoesGerais sistema = do
           putStrLn " ---  +-----------+-------------------------+-----------"
 
           mapM_
-            ( \(pos, (matricula, aluno)) -> do
-                let nome = getNomeAluno aluno
-                let curso = getCursoAluno aluno
-
-                let num = take 3 (" " ++ show pos ++ ". ")
-                let mat = take 10 ("| " ++ show matricula ++ "        ")
-                let nom = take 24 ("| " ++ nome ++ repeat ' ')
-                let cur = take 12 ("| " ++ curso ++ repeat ' ')
-
-                putStrLn $ " " ++ num ++ "  " ++ mat ++ "  " ++ nom ++ "  " ++ cur
+            ( \(matricula, aluno) -> do
+                let nome = unNome (getNomeAluno aluno)
+                putStrLn $ show (unMatricula matricula) ++ " - " ++ nome
             )
-            (zip [1 ..] alunos)
-
-          putStrLn ""
-          putStrLn $ "Total: " ++ show (length alunos) ++ " aluno(s)"
+            alunos
 
       putStr "\nAperte enter para continuar..."
       hFlush stdout
@@ -270,7 +270,7 @@ menuAlteracoesGerais sistema = do
           let disciplinas = Map.toList mapaDisc
           mapM_
             ( \(_, disc) -> do
-                putStrLn $ getNomeDisciplina disc
+                putStrLn $ unNome (getNomeDisciplina disc)
             )
             disciplinas
 
@@ -355,7 +355,7 @@ menuMatricula sistema = do
       hFlush stdout
       turma <- getLine
 
-      case realizarMatricula (read matricula) (read turma) sistema of
+      case realizarMatricula (Matricula (read matricula)) (read turma) sistema of
         Left erro -> do
           putStrLn $ "\nErro: " ++ erro
           menuMatricula sistema
@@ -385,26 +385,9 @@ menuMatricula sistema = do
 
 menuRematricula :: Sistema -> IO ()
 menuRematricula sistema = do
-  -- Mostrar matriculas realizadas/indeferidas antes de entrar no menu (conforme saida_esperada)
-  -- Mas saida_esperada mostra isso na transição.
-  -- Vamos mostrar aqui.
-
-  case getMatriculasRealizadas sistema of
-    Right relatorio -> do
-      putStrLn "\n--- Matrículas realizadas ---"
-      putStrLn relatorio
-      putStrLn "Aperte enter para continuar..."
-      hFlush stdout
-      _ <- getLine
-      return ()
-    Left _ -> return ()
-
-  -- Mock de indeferidas (não temos lógica de indeferimento baseada em prioridade ainda, então vazio)
-  putStrLn "\n--- Matrículas indeferidas ---"
-  putStrLn ""
-  putStrLn "Aperte enter para continuar..."
-  hFlush stdout
-  _ <- getLine
+  let dados = processarMatriculas sistema
+  let matriculasDeferidas = fst dados
+  let matriculasIndeferidas = snd dados
 
   loopRematricula sistema
 
@@ -433,7 +416,7 @@ loopRematricula sistema = do
       hFlush stdout
       turma <- getLine
 
-      case realizarMatricula (read matricula) (read turma) sistema of
+      case realizarMatricula (Matricula (read matricula)) (read turma) sistema of
         Left erro -> do
           putStrLn $ "\nErro: " ++ erro
           loopRematricula sistema

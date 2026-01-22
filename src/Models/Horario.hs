@@ -1,7 +1,7 @@
 module Models.Horario (Horario, lerHorario, temInterseccao, validarHorario) where
 
-import Data.List (intersect, nub)
 import Data.Char (isDigit)
+import Data.List (intersect, nub)
 
 newtype Horario = Horario String
   deriving (Eq, Read)
@@ -36,13 +36,13 @@ parsePart :: String -> [Slot]
 parsePart s =
   let (diaStr, rest) = span isDigit s
       (turnoStr, slotsStr) = splitAt 1 rest
-  in if not (validarPart s)
-     then []
-     else
-       let turno = head turnoStr
-           slots = [read [c] :: Int | c <- slotsStr, isDigit c]
-           dias = map parseDia diaStr
-       in [(d, turno, slot) | d <- dias, slot <- slots]
+   in if not (validarPart s)
+        then []
+        else
+          let turno = head turnoStr
+              slots = [read [c] :: Int | c <- slotsStr, isDigit c]
+              dias = map parseDia diaStr
+           in [(d, turno, slot) | d <- dias, slot <- slots]
 
 parseDia :: Char -> DiaSemana
 parseDia '2' = Seg
@@ -51,15 +51,15 @@ parseDia '4' = Qua
 parseDia '5' = Qui
 parseDia '6' = Sex
 parseDia '7' = Sab
-parseDia _   = error "Dia invalido (use 2-7)"
+parseDia _ = error "Dia invalido (use 2-7)"
 
 validarPart :: String -> Bool
 validarPart s =
   let (diaStr, rest) = span isDigit s
       (turnoStr, slotsStr) = splitAt 1 rest
-  in not (null diaStr) &&
-     not (null turnoStr) &&
-     not (null slotsStr) &&
-     all (`elem` "234567") diaStr &&
-     head turnoStr `elem` "MTN" &&
-     all isDigit slotsStr
+   in not (null diaStr)
+        && not (null turnoStr)
+        && not (null slotsStr)
+        && all (`elem` "234567") diaStr
+        && head turnoStr `elem` "MTN"
+        && all isDigit slotsStr
