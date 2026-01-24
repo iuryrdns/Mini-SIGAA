@@ -54,6 +54,7 @@ drawUI s = [center $ vBox [ui, drawFeedback s]]
         TelaAgenda           -> drawAgenda s
         TelaListaSolicitacoes -> drawListaSolicitacoes s
         TelaExibirNotasAluno  -> drawTabelaNotas s
+        TelaListaResultados   -> drawListaResultados s
 
 -------------------------------------------------------------------------------
 -- Definição dos Campos de Formulários (Configuração)
@@ -73,8 +74,8 @@ drawUI s = [center $ vBox [ui, drawFeedback s]]
 
     camposTurma = 
         [ ("Cod. Turma", EditCodTurma), ("ID Professor", EditProfTurma)
-        , ("Cod. Disciplina", EditDiscTurma), ("Horário (Formato: 2M34)", EditHorarioTurma)
-        , ("Qtd Max Alunos", EditMaxAlunosTurma) ]
+        , ("Cod. Disciplina", EditDiscTurma), ("Horário", EditHorarioTurma)
+        , ("Qtd Max Alunos", EditMaxAlunosTurma), ("Sala", EditSalaTurma) ]
 
     camposSolicitacao = 
         [ ("Matrícula Aluno", EditMatAluno), ("Código da Turma", EditMatTurma) ]

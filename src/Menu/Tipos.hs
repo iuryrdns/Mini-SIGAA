@@ -23,7 +23,7 @@ import Sistema (Sistema)
 import Models.Aluno (Aluno, NotasDisciplina)
 import Models.Professor (Professor)
 import Models.Disciplina (Disciplina)
-import Models.Types (Solicitacao(..))
+import Models.Types (Solicitacao(..), ResultadoProcessamento(..))
 
 -------------------------------------------------------------------------------
 -- Identificadores (Names)
@@ -41,12 +41,13 @@ data Name = MenuPrincipal
           | EditPeriodoDisciplina 
           --- Campos Turma
           | EditCodTurma | EditProfTurma | EditDiscTurma | EditHorarioTurma 
-          | EditMaxAlunosTurma
+          | EditMaxAlunosTurma | EditSalaTurma
           -- Identificadores de Listas
           | ListaAlunos
           | ListaProfessores
           | ListaDisciplinas
           | ListaSolicitacoes
+          | ListaResultados
           --- Campos Matrícula
           | EditMatAluno | EditMatTurma
           | EditConsultaMatricula
@@ -75,6 +76,7 @@ data Tela = TelaMenu
           | TelaCadSolicitacao 
           | TelaListaSolicitacoes 
           | TelaMenuNotas 
+          | TelaListaResultados
           | TelaInserirNotas 
           | TelaConsultarNotas
           | TelaExibirNotasAluno
@@ -93,6 +95,7 @@ data AppState = AppState
   , _listaMenuProfessores :: L.List Name Professor-- ^ Visualização de professores
   , _listaMenuDisciplinas :: L.List Name Disciplina -- ^ Visualização de disciplinas
   , _listaMenuSolicitacoes:: L.List Name Solicitacao -- ^ Visualização de matrículas
+  , _listaMenuResultados  :: L.List Name ResultadoProcessamento -- ^ Visualização de resultados de matrículas
   , _listaMenuNotas       :: L.List Name (Int, NotasDisciplina) -- ^ Visualização de notas
   , _telaAtiva            :: Tela                 -- ^ Controle de navegação atual
   , _mensagemErro         :: Maybe String         -- ^ Feedback para o usuário

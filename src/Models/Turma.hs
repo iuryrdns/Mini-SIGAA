@@ -19,6 +19,7 @@ module Models.Turma
   , getHorarioTurma
   , getProfessorTurma
   , getCapacidadeTurma
+  , getSalaTurma
   , setAlunosTurma
   
     -- * Lógica de Vagas e Matrícula
@@ -47,9 +48,10 @@ data Turma = Turma
   { _codigo               :: Int            -- ^ Identificador único da turma
   , _matriculaProfessor   :: Matricula      -- ^ Professor responsável
   , _disciplina           :: Codigo         -- ^ Código da disciplina vinculada
-  , _horario             :: [Horario]        -- ^ Representação do horário (ex: "24M12")
+  , _horario              :: [Horario]      -- ^ Representação do horário (ex: "24M12")
   , _alunos               :: [Aluno]        -- ^ Lista de alunos confirmados
   , _qtdMaxAlunos         :: Int            -- ^ Limite de vagas
+  , _sala                 :: String         -- ^ Sala onde a turma ocorre (ex: "CAA201")
   } deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
 -------------------------------------------------------------------------------
@@ -57,8 +59,8 @@ data Turma = Turma
 -------------------------------------------------------------------------------
 
 -- | Cria uma nova turma com a lista de alunos inicialmente vazia.
-criarTurma :: Int -> Matricula -> Codigo -> [Horario] -> Int -> Turma
-criarTurma codigo professor disciplina horario qtdAlunos =
+criarTurma :: Int -> Matricula -> Codigo -> [Horario] -> Int -> String -> Turma
+criarTurma codigo professor disciplina horario qtdAlunos sala =
   Turma
     { _codigo             = codigo
     , _matriculaProfessor = professor
@@ -66,6 +68,7 @@ criarTurma codigo professor disciplina horario qtdAlunos =
     , _horario           = horario
     , _qtdMaxAlunos      = qtdAlunos
     , _alunos            = []
+    , _sala              = sala
     }
 
 -------------------------------------------------------------------------------
@@ -95,6 +98,10 @@ getAlunosTurma = _alunos
 -- | Retorna o limite máximo de vagas.
 getCapacidadeTurma :: Turma -> Int
 getCapacidadeTurma = _qtdMaxAlunos
+
+-- | Retorna a sala onde a turma ocorre.
+getSalaTurma :: Turma -> String
+getSalaTurma = _sala
 
 -- | Atualiza a lista de alunos matriculados na turma.
 setAlunosTurma :: [Aluno] -> Turma -> Turma

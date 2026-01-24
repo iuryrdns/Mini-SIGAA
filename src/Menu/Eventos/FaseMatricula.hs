@@ -92,7 +92,8 @@ handleMenuSelectionFaseMatricula st = case L.listSelectedElement (st^.listaMenu)
         
         -- 3. Configura o novo menu da fase de notas
         let menuFaseNotas = Vec.fromList 
-                [ "Inserir Nota"
+                [ "Ver Resultados Matrícula"
+                ,"Inserir Nota"
                 , "Consultar Notas"
                 , "Finalizar Semestre"
                 , "Sair"

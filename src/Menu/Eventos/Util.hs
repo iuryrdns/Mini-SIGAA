@@ -157,10 +157,11 @@ extrairTurma st = do
     
     let discStr = getCampo EditDiscTurma st
     let horStr  = getCampo EditHorarioTurma st
+    let salaStr = getCampo EditSalaTurma st
 
     -- 2. Validações de campo vazio
-    if null discStr || null horStr 
-       then Left "Campos de Disciplina e Horário são obrigatórios" 
+    if null discStr || null horStr || null salaStr
+       then Left "Campos de Disciplina, Horário e Sala são obrigatórios" 
        else do
            -- 3. Processamento da String de Horários
            -- Ex: "2M23, 4M23" -> ["2M23", "4M23"]
@@ -173,7 +174,7 @@ extrairTurma st = do
               then Left "Nenhum horário válido informado. Use o formato: 2M23, 4M45"
               else do
                   -- 5. Criação e Cadastro
-                  let novaTurma = criarTurma cod prof discStr listaHorarios maxA
+                  let novaTurma = criarTurma cod prof discStr listaHorarios maxA salaStr
                   cadastrarTurma novaTurma (st^.sistema)
 
 -- | Extrai dados para uma Solicitação de Matrícula.

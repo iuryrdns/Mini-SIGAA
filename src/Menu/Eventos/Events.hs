@@ -75,6 +75,14 @@ handleEvent e = do
                 VtyEvent ev -> zoom listaMenuDisciplinas (L.handleListEvent ev)
                 _ -> return ()
 
+            TelaListaSolicitacoes -> case e of
+                VtyEvent ev -> zoom listaMenuSolicitacoes (L.handleListEvent ev)
+                _ -> return ()
+
+            TelaListaResultados -> case e of
+                VtyEvent ev -> zoom listaMenuResultados (L.handleListEvent ev)
+                _ -> return ()
+
             TelaExibirNotasAluno -> case e of
                 VtyEvent ev -> zoom listaMenuNotas (L.handleListEvent ev)
                 _ -> return ()

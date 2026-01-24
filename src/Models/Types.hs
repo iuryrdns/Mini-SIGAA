@@ -20,6 +20,15 @@ import Data.List (intersect)
 -- Entidades de Sistema
 -------------------------------------------------------------------------------
 
+-- documentar
+data StatusSolicitacao = Aceita | Recusada String deriving (Show, Generic, ToJSON, FromJSON)
+
+data ResultadoProcessamento = ResultadoProcessamento
+  { _rpMatricula :: Matricula
+  , _rpTurma     :: Int
+  , _rpStatus    :: StatusSolicitacao
+  } deriving (Show, Generic, ToJSON, FromJSON)
+
 -- | Representa um pedido de matrícula realizado por um aluno.
 data Solicitacao = Solicitacao
   { _sMatricula :: Matricula -- ^ Matrícula do aluno solicitante

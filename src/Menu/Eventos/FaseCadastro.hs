@@ -73,7 +73,7 @@ handleEnterFaseCadastro st = case st^.telaAtiva of
     TelaCadAluno -> finalizarCadastro extrairAluno [EditNomeAluno, EditMatricula, EditCurso, EditCRA]
     TelaCadProfessor -> finalizarCadastro extrairProfessor [EditMatriculaProfessor, EditNomeProfessor, EditDepto, EditFormacao]
     TelaCadDisciplina -> finalizarCadastro extrairDisciplina [EditNomeDisciplina, EditCodigoDisciplina, EditPreRequisitosDisciplina, EditPeriodoDisciplina]
-    TelaCadTurma -> finalizarCadastro extrairTurma [EditCodTurma, EditProfTurma, EditDiscTurma, EditHorarioTurma, EditMaxAlunosTurma]
+    TelaCadTurma -> finalizarCadastro extrairTurma [EditCodTurma, EditProfTurma, EditDiscTurma, EditHorarioTurma, EditMaxAlunosTurma, EditSalaTurma]
     
     _ -> return ()
 
@@ -95,7 +95,7 @@ handleMenuSelectionFaseCadastro st = case L.listSelectedElement (st^.listaMenu) 
         modify $ \s -> s { _telaAtiva = TelaCadProfessor, _foco = focusRing [EditMatriculaProfessor, EditNomeProfessor, EditDepto, EditFormacao] }
 
     Just (_, "Cadastrar Turma") -> 
-        modify $ \s -> s { _telaAtiva = TelaCadTurma, _foco = focusRing [EditCodTurma, EditProfTurma, EditDiscTurma, EditHorarioTurma, EditMaxAlunosTurma] }
+        modify $ \s -> s { _telaAtiva = TelaCadTurma, _foco = focusRing [EditCodTurma, EditProfTurma, EditDiscTurma, EditHorarioTurma, EditMaxAlunosTurma, EditSalaTurma] }
 
     Just (_, "Cadastrar Disciplina") -> 
         modify $ \s -> s { _telaAtiva = TelaCadDisciplina, _foco = focusRing [EditCodigoDisciplina, EditNomeDisciplina, EditPreRequisitosDisciplina, EditPeriodoDisciplina] }

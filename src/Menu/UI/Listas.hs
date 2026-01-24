@@ -13,6 +13,7 @@ module Menu.UI.Listas
   , drawListaDisciplinas
   , drawListaSolicitacoes
   , drawTabelaNotas
+  , drawListaResultados
   ) where
 
 -- Bibliotecas Externas
@@ -36,7 +37,7 @@ import qualified Models.Professor as B
 import qualified Models.Disciplina as D
 import qualified Models.Turma as T
 import qualified Models.Matricula as MTR
-import Models.Types (Solicitacao(..))
+import Models.Types (Solicitacao(..), StatusSolicitacao(..), ResultadoProcessamento(..))
 
 -------------------------------------------------------------------------------
 -- Listagem de Alunos e Professores
@@ -143,6 +144,45 @@ drawListaSolicitacoes s = templateUI " Solicitações Pendentes " $
             in estilo $ str info
 
     in vBox [ vLimit 15 $ L.renderList desenhaLinha True (s^.listaMenuSolicitacoes)
+            , str " "
+            , hCenter $ str "[Esc] Voltar ao Menu"
+            ]
+
+-- | Renderiza os resultados do processamento de matrículas.
+drawListaResultados :: AppState -> Widget Name
+drawListaResultados s = templateUI " Resultado do Processamento de Matrículas " $
+    let sis = s^.sistema
+        
+        desenhaLinha selecionado res =
+            let estiloBase = if selecionado then withAttr L.listSelectedAttr else id
+                
+                -- Dados do Resultado
+                mat = _rpMatricula res
+                idT = _rpTurma res
+                status = _rpStatus res
+
+                -- Busca informações para exibição
+                nomeA = maybe (show mat) A.getNomeAluno (M.lookup mat (_alunos sis))
+                nomeD = fromMaybe "Desconhecida" $ do
+                            t <- M.lookup idT (_turmas sis)
+                            d <- M.lookup (T.getDisciplinaTurma t) (_disciplinas sis)
+                            return $ D.getNomeDisciplina d
+
+                -- Formatação por Status
+                (prefixo, attrStatus) = case status of
+                    Aceita -> ("[ACEITA]   ", attrName "sucesso")
+                    Recusada motivo -> ("[RECUSADA] ", attrName "erro")
+                
+                textoInfo = nomeA ++ " -> " ++ nomeD ++ " (Turma " ++ show idT ++ ")"
+                
+            in estiloBase $ hBox [ withAttr attrStatus (str prefixo)
+                                 , str textoInfo
+                                 ]
+
+    in vBox [ vLimit 20 $ L.renderList desenhaLinha True (s^.listaMenuResultados)
+            , str " "
+            , padLeftRight 2 $ withAttr (attrName "info") $ 
+              str "Dica: Use as setas para navegar e ver detalhes."
             , str " "
             , hCenter $ str "[Esc] Voltar ao Menu"
             ]

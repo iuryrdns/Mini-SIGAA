@@ -37,7 +37,7 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 
 -- Importações de Modelos
-import Models.Types (Matricula, Codigo, Solicitacao(..), horarioTemInterseccao, listasHorarioConflitam)
+import Models.Types (Matricula, Codigo, Solicitacao(..), StatusSolicitacao(..), ResultadoProcessamento(..), horarioTemInterseccao, listasHorarioConflitam)
 import Models.Aluno (Aluno, NotasDisciplina(..))
 import qualified Models.Aluno as A
 import Models.Disciplina (Disciplina)
@@ -58,6 +58,7 @@ data Sistema = Sistema
   , _disciplinas  :: M.Map Codigo Disciplina
   , _turmas       :: M.Map Int Turma -- ^ Mape código da turma para a entidade Turma
   , _solicitacoes :: [Solicitacao] -- ^ Fila de espera para processamento
+  , _historicoProc :: [ResultadoProcessamento] -- ^ Histórico de processamentos de solicitações
   , _fase         :: Int           -- ^ 0: Planejamento, 1: Matrícula, 2: Semestre Ativo
   } deriving (Show, Generic, ToJSON, FromJSON)
 
@@ -69,6 +70,7 @@ sistemaVazio = Sistema
   , _disciplinas  = M.empty
   , _turmas       = M.empty
   , _solicitacoes = []
+  , _historicoProc = []
   , _fase         = 0
   }
 
@@ -128,8 +130,9 @@ cadastrarTurma turma sistema
 abrirPeriodoMatriculas :: Sistema -> Either String Sistema
 abrirPeriodoMatriculas s
     | _fase s == 1 = Left "O período já está aberto"
-    | M.null (_alunos s) = Left "Lista de alunos vazia"
-    | otherwise = Right s { _fase = 1 }
+    | M.null (_alunos s)  = Left "Não é possível abrir: nenhum aluno cadastrado."
+    | M.null (_turmas s)  = Left "Não é possível abrir: nenhuma turma cadastrada."
+    | otherwise = Right s { _fase = 1, _historicoProc = [] }
 
 cadastrarSolicitacao :: Matricula -> Int -> Sistema -> Either String Sistema
 cadastrarSolicitacao idA idT sis = do
@@ -160,7 +163,7 @@ efetivarMatriculas sis =
         -- 1. Agrupar solicitações por ID de Turma: M.Map idTurma [Matricula]
         mapaSols = M.fromListWith (++) [(_sTurma s, [_sMatricula s]) | s <- _solicitacoes sis]
 
-        -- 2. Função que decide quem entra em cada turma
+        -- 2. Decidir quem entra em cada turma
         processarPorTurma idT mats =
             let capacidade = maybe 0 T.getCapacidadeTurma (M.lookup idT (_turmas sis))
                 -- Ordena por CRA (Down) e usa Matrícula como desempate
@@ -183,9 +186,22 @@ efetivarMatriculas sis =
                 novasNotas = foldr (`M.insert` A.notasVazias) (A._notas al) turmasDoAluno
             in al { A._notas = novasNotas }) (_alunos sis)
 
+        -- 6. Gerar o histórico de processamento
+        gerarResultado sol =
+            let mat = _sMatricula sol
+                idT = _sTurma sol
+                aprovadosNaTurma = M.findWithDefault [] idT aprovadosPorTurma
+                status = if mat `elem` aprovadosNaTurma
+                         then Aceita
+                         else Recusada "Vagas esgotadas (Critério: CRA)"
+            in ResultadoProcessamento mat idT status
+        
+        historicoFinal = map gerarResultado (_solicitacoes sis)
+
     in sis { _turmas = novasTurmas
            , _alunos = novosAlunos
            , _solicitacoes = []
+           , _historicoProc = historicoFinal
            , _fase = 2 -- Semestre Ativo
            }
 
@@ -210,11 +226,17 @@ finalizarSemestre s = s
     , _solicitacoes = []
     }
 
--- | Verifica se a nova turma conflita em horário com as turmas já cadastradas.
+-- | Verifica se a nova turma conflita em horário E local com turmas existentes.
+-- O conflito só ocorre se (Mesmo Horário) AND (Mesma Sala).
 checarConflitoGeral :: Turma -> Sistema -> Bool
 checarConflitoGeral novaTurma sistema =
     let turmasAtuais = M.elems (_turmas sistema)
-        conflita t = listasHorarioConflitam (T.getHorarioTurma t) (T.getHorarioTurma novaTurma)
+        
+        conflita t = 
+            let mesmoHorario = listasHorarioConflitam (T.getHorarioTurma t) (T.getHorarioTurma novaTurma)
+                mesmaSala    = T.getSalaTurma t == T.getSalaTurma novaTurma
+            in mesmoHorario && mesmaSala
+            
     in any conflita turmasAtuais
 
 -------------------------------------------------------------------------------

@@ -74,7 +74,7 @@ main = do
                  , ["Cadastrar Matrícula", "Mostrar Solicitações", "Encerrar Período de Matrículas", "Sair"] 
                  )
             2 -> ( TelaMenuNotas
-                 , ["Inserir Nota", "Consultar Notas", "Finalizar Semestre", "Sair"] 
+                 , ["Ver Resultados Matrícula", "Inserir Nota", "Consultar Notas", "Finalizar Semestre", "Sair"] 
                  )
             _ -> ( TelaMenu
                  , [ "Cadastrar Aluno", "Cadastrar Professor", "Cadastrar Disciplina"
@@ -88,17 +88,18 @@ main = do
     
     -- 3. Monta o estado inicial da aplicação
     let initialState = AppState
-          { _sistema              = sis
-          , _listaMenu            = L.list MenuPrincipal (Vec.fromList opcoesMenu) 1
-          , _listaMenuAlunos      = L.list ListaAlunos Vec.empty 1
-          , _listaMenuProfessores = L.list ListaProfessores Vec.empty 1
-          , _listaMenuDisciplinas  = L.list ListaDisciplinas Vec.empty 1
-          , _listaMenuSolicitacoes = L.list ListaSolicitacoes Vec.empty 1
-          , _listaMenuNotas        = L.list EditListaNotas Vec.empty 1
-          , _telaAtiva            = telaInicial
-          , _mensagemErro         = Nothing
-          , _formularios          = initialForms
-          , _foco                 = focusRing [] 
+          { _sistema                = sis
+          , _listaMenu              = L.list MenuPrincipal (Vec.fromList opcoesMenu) 1
+          , _listaMenuAlunos        = L.list ListaAlunos Vec.empty 1
+          , _listaMenuProfessores   = L.list ListaProfessores Vec.empty 1
+          , _listaMenuDisciplinas   = L.list ListaDisciplinas Vec.empty 1
+          , _listaMenuSolicitacoes  = L.list ListaSolicitacoes Vec.empty 1
+          , _listaMenuResultados    = L.list ListaResultados Vec.empty 1
+          , _listaMenuNotas         = L.list EditListaNotas Vec.empty 1
+          , _telaAtiva              = telaInicial
+          , _mensagemErro           = Nothing
+          , _formularios            = initialForms
+          , _foco                   = focusRing [] 
           }
 
 
@@ -110,7 +111,7 @@ todosOsCampos =
     [ EditNomeAluno, EditMatricula, EditCurso, EditCRA
     , EditMatriculaProfessor, EditNomeProfessor, EditDepto, EditFormacao
     , EditCodigoDisciplina, EditNomeDisciplina, EditPreRequisitosDisciplina, EditPeriodoDisciplina
-    , EditCodTurma, EditProfTurma, EditDiscTurma, EditHorarioTurma, EditMaxAlunosTurma
+    , EditCodTurma, EditProfTurma, EditDiscTurma, EditHorarioTurma, EditMaxAlunosTurma, EditSalaTurma
     , EditMatAluno, EditMatTurma
     , EditMatriculaNota, EditTurmaNota, EditNota1, EditNota2, EditNota3, EditConsultaNotaMatricula, EditListaNotas
     ]

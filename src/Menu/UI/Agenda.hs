@@ -39,7 +39,6 @@ import Menu.Tipos
 
 -- | Desenha a tabela de horários centralizada.
 -- Filtra as turmas do sistema e as posiciona conforme o dia e o prefixo da hora.
-
 drawAgenda :: AppState -> Widget Name
 drawAgenda st =
     let
@@ -61,8 +60,7 @@ drawAgenda st =
 
         pertenceAoBloco t diaAlvo turnoAlvo slotsAlvo =
             let 
-                listaHorarios = getHorarioTurma t -- Isso agora retorna [Horario]
-                -- Extraímos as strings de dentro de cada Horario e rodamos o parseHorario em todas
+                listaHorarios = getHorarioTurma t 
                 slotsTurma = concatMap (\(Horario hStr) -> parseHorario hStr) listaHorarios
             in 
                 any (\(d, turno, s) -> 
@@ -119,11 +117,11 @@ drawAgenda st =
       padAll 1 $
         vBox
           [ viewport AgendaViewport Vertical $
-              vLimit 45 $               -- altura inicial desejada
+              vLimit 45 $              
               hLimit 190 $
               vBox
                 [ tabela
-                , fill ' '               --  ISSO É O SEGREDO
+                , fill ' '               
                 ]
 
           , hCenter $
