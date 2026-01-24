@@ -1,40 +1,54 @@
 cabal-version:      2.4
 name:               Mini-SIGAA
 version:            0.1.0.0
+synopsis:           Sistema de Gestão Acadêmica simplificado em Brick
+build-type:         Simple
+
+common dependencies
+    build-depends:    base >= 4.14 && < 5
+                    , aeson
+                    , aeson-pretty
+                    , brick
+                    , bytestring
+                    , containers
+                    , directory
+                    , microlens
+                    , microlens-ghc
+                    , microlens-mtl
+                    , microlens-th
+                    , mtl
+                    , text
+                    , vector
+                    , vty
+    default-language: Haskell2010
+    ghc-options:      -Wall
 
 library
+    import:           dependencies
+    hs-source-dirs:   src
     exposed-modules:  Models.Aluno
                     , Models.Professor
                     , Models.Disciplina
                     , Models.Turma
                     , Models.Matricula
-                    , IOs.ListarObj
+                    , Models.PerfilAcademico
+                    , Models.Types
                     , Sistema
-                    , Utils.Avaliador
-                    , BrickMenu.Tipos
-                    , BrickMenu.Events
-                    , BrickMenu.UI
-    build-depends:    directory ^>=1.3.8.5, containers ^>=0.6.7, text ^>=2.0.2, base, aeson, bytestring, text, brick, vty, vector, microlens, microlens-th, microlens-mtl, microlens-ghc, mtl
-    hs-source-dirs:   src
-    default-language: Haskell2010
+                    , Utils.Database
+                    , Menu.Tipos
+                    , Menu.UI.UI
+                    , Menu.UI.Common
+                    , Menu.UI.Listas
+                    , Menu.UI.Agenda
+                    , Menu.Eventos.Events
+                    , Menu.Eventos.FaseCadastro
+                    , Menu.Eventos.FaseMatricula
+                    , Menu.Eventos.FaseNotas
+                    , Menu.Eventos.Util
 
 executable mini-sigaa
+    import:           dependencies
     main-is:          Main.hs
-    build-depends:    base
-                    , Mini-SIGAA
-                    , directory ^>=1.3.8.5
-                    , containers ^>=0.6.7
-                    , aeson
-                    , bytestring
-                    , text
-                    , brick
-                    , vty
-                    , vector
-                    , microlens
-                    , microlens-th
-                    , microlens-mtl
-                    , microlens-ghc
-                    , mtl
-    hs-source-dirs:   src
-    default-language: Haskell2010
-    ghc-options:      -threaded
+    build-depends:    Mini-SIGAA
+    hs-source-dirs:   app
+    ghc-options:      -threaded -rtsopts -with-rtsopts=-N

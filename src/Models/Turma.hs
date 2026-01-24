@@ -1,97 +1,113 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
+-- |
+-- Module      : Models.Turma
+-- Description : Define a estrutura de uma turma ofertada.
+-- Gerencia o horário, professor responsável, alunos matriculados e limite de vagas.
 module Models.Turma
-  ( Turma
-  , Dia(..)
+  ( -- * Tipos de Dados
+    Turma
+  
+    -- * Construtores
+  , criarTurma
+  
+    -- * Getters (Acessores) e setters
   , getCodigoTurma
   , getAlunosTurma
   , getDisciplinaTurma
-  , getDiaTurma        -- Novo: Acesso direto ao dia
-  , getHoraTurma       -- Novo: Acesso direto à string da hora
-  , getHorarioTurma    -- Mantido para compatibilidade se necessário
+  , getHorarioTurma
   , getProfessorTurma
-  , adicionarAlunoTurma
-  , criarTurma
-  , temVagaTurma
   , getCapacidadeTurma
-  , numParaDia         -- Novo: utilitário para converter 2-6 em Dia
+  , setAlunosTurma
+  
+    -- * Lógica de Vagas e Matrícula
+  , temVagaTurma
+  , adicionarAlunoTurma
   ) where
 
+-- Bibliotecas Externas
 import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
+
+-- Módulos Internos
+import Models.Types 
+    ( Matricula
+    , Codigo
+    , Horario(..)
+    )
 import Models.Aluno (Aluno)
 
+-------------------------------------------------------------------------------
+-- Tipos de Dados
+-------------------------------------------------------------------------------
 
-data Dia = Segunda | Terca | Quarta | Quinta | Sexta
-    deriving (Eq, Enum, Bounded, Generic, ToJSON, FromJSON)
-
-instance Show Dia where
-    show Segunda = "Segunda"
-    show Terca   = "Terca"
-    show Quarta  = "Quarta"
-    show Quinta  = "Quinta"
-    show Sexta   = "Sexta"
-
+-- | Representa uma oferta específica de uma disciplina em um período.
 data Turma = Turma
-  { _codigo            :: Int
-  , _matriculaProfessor :: Int
-  , _disciplina        :: String
-  , _dia               :: Dia    
-  , _hora              :: String  
-  , _alunos            :: [Aluno]
-  , _qtdMaxAlunos      :: Int
-  }
-  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+  { _codigo               :: Int            -- ^ Identificador único da turma
+  , _matriculaProfessor   :: Matricula      -- ^ Professor responsável
+  , _disciplina           :: Codigo         -- ^ Código da disciplina vinculada
+  , _horario             :: [Horario]        -- ^ Representação do horário (ex: "24M12")
+  , _alunos               :: [Aluno]        -- ^ Lista de alunos confirmados
+  , _qtdMaxAlunos         :: Int            -- ^ Limite de vagas
+  } deriving (Show, Eq, Generic, ToJSON, FromJSON)
 
--- Função para converter números (2 a 6) para o tipo Dia
-numParaDia :: Int -> Either String Dia
-numParaDia 2 = Right Segunda
-numParaDia 3 = Right Terca
-numParaDia 4 = Right Quarta
-numParaDia 5 = Right Quinta
-numParaDia 6 = Right Sexta
-numParaDia _ = Left "Dia inválido (use 2 para Segunda a 6 para Sexta)"
+-------------------------------------------------------------------------------
+-- Construtor
+-------------------------------------------------------------------------------
 
-criarTurma :: Int -> Int -> String -> Dia -> String -> Int -> Turma
-criarTurma codigo professor disciplina dia hora qtdAlunos =
+-- | Cria uma nova turma com a lista de alunos inicialmente vazia.
+criarTurma :: Int -> Matricula -> Codigo -> [Horario] -> Int -> Turma
+criarTurma codigo professor disciplina horario qtdAlunos =
   Turma
-    { _codigo = codigo
+    { _codigo             = codigo
     , _matriculaProfessor = professor
-    , _disciplina = disciplina
-    , _dia = dia
-    , _hora = hora
-    , _qtdMaxAlunos = qtdAlunos
-    , _alunos = []
+    , _disciplina        = disciplina
+    , _horario           = horario
+    , _qtdMaxAlunos      = qtdAlunos
+    , _alunos            = []
     }
 
-getDiaTurma :: Turma -> Dia
-getDiaTurma = _dia
+-------------------------------------------------------------------------------
+-- Getters e Setters
+-------------------------------------------------------------------------------
 
-getHoraTurma :: Turma -> String
-getHoraTurma = _hora
-
-getHorarioTurma :: Turma -> (Dia, String)
-getHorarioTurma t = (_dia t, _hora t)
-
+-- | Retorna o código da turma.
 getCodigoTurma :: Turma -> Int
 getCodigoTurma = _codigo
 
-getProfessorTurma :: Turma -> Int
-getProfessorTurma = _matriculaProfessor
-
-getDisciplinaTurma :: Turma -> String
+-- | Retorna o código da disciplina ofertada nesta turma.
+getDisciplinaTurma :: Turma -> Codigo
 getDisciplinaTurma = _disciplina
 
+-- | Retorna o objeto Horario da turma.
+getHorarioTurma :: Turma -> [Horario]
+getHorarioTurma = _horario
+
+-- | Retorna a matrícula do professor responsável.
+getProfessorTurma :: Turma -> Matricula
+getProfessorTurma = _matriculaProfessor
+
+-- | Retorna a lista de alunos já matriculados (pós-processamento).
 getAlunosTurma :: Turma -> [Aluno]
 getAlunosTurma = _alunos
 
-temVagaTurma :: Turma -> Bool
-temVagaTurma turma = length (_alunos turma) < _qtdMaxAlunos turma
-
+-- | Retorna o limite máximo de vagas.
 getCapacidadeTurma :: Turma -> Int
 getCapacidadeTurma = _qtdMaxAlunos
 
+-- | Atualiza a lista de alunos matriculados na turma.
+setAlunosTurma :: [Aluno] -> Turma -> Turma
+setAlunosTurma novosAlunos t = t { _alunos = novosAlunos }
+
+-------------------------------------------------------------------------------
+-- Lógica de Vagas e Matrícula
+-------------------------------------------------------------------------------
+
+-- | Verifica se a turma ainda possui vagas disponíveis.
+temVagaTurma :: Turma -> Bool
+temVagaTurma turma = length (_alunos turma) < _qtdMaxAlunos turma
+
+-- | Adiciona um aluno à lista de matriculados da turma.
 adicionarAlunoTurma :: Turma -> Aluno -> Turma
-adicionarAlunoTurma turma aluno =
-  turma { _alunos = _alunos turma ++ [aluno] }
+adicionarAlunoTurma t a = t { _alunos = a : _alunos t }

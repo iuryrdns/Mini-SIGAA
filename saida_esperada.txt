@@ -5,114 +5,53 @@
 ---------------------------------------------------------
 
 --- Período de Alterações Gerais ---
-1. Adicionar professor
-2. Adicionar aluno
-3. Adicionar disciplina
-4. Adicionar turma
-5. Ver professores adicionad0s
-6. Ver alunos adicionados
-7. Ver disciplinas adicionadas
-8. Ver turmas adicionadas
-9. Confirmar alterações (*)
+1. Cadastrar aluno
+2. Cadastrar professor
+3. Cadastrar disciplina
+4. Cadastrar turma
+5. Listar Alunos
+6. Listar Professores
+7. Listar Turmas
+8. Listar disciplinas
+9. Período de Matrículas
 0. Sair
-
----------------------------------------------------------
-
---- Conflitos encontrados ---
-1. Turmas com conflito de horário: 123123 e 1231234
-2. Turmas com conflito de horário: 4475567 e 234536
-...
-21. Turmas com conflito de horário: 4475567 e 234536
-
-Aperte enter para continuar...
-
----------------------------------------------------------
-
---- Período de Alterações Gerais ---
-1. Adicionar professor
-2. Adicionar aluno
-3. Adicionar disciplina
-4. Adicionar turma
-5. Ver professores adicionad0s
-6. Ver alunos adicionados
-7. Ver disciplinas adicionadas
-8. Ver turmas adicionadas
-9. Confirmar alterações (*)
-0. Sair
-
----------------------------------------------------------
-
---- Conflitos encontrados ---
-Não há nada aqui!
-
-Aperte enter para continuar...
 
 ---------------------------------------------------------
 
 --- Período de matrículas ---
 1. Cadastrar matrícula
 2. Mostrar matrículas em andamento
-3. Finalizar período de matrículas (*)
+3. Finalizar período de matrículas (*) (TODO: PROCESSAMENTO)
 0. Sair
 
 --------------------------------------------------------
 
---- Matrículas realizadas ---
-1. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-2. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-...
-21. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-
-Aperte enter para continuar...
-
---------------------------------------------------------
-
---- Matrículas indeferidas ---
-
-1. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-2. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-...
-21. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-
-Aperte enter para continuar...
-
---------------------------------------------------------
-
---- Período de rematrícula ---
-1. Cadastrar rematrícula
+(TODO)
+--- Período de rematrícula --- 
+1. VERIFICAR RESULTADO PROCESSAMENTO DE MATRICULA [Passa matrícula do aluno e lista as solicitações]
+1. Cadastrar rematrícula 
 2. Mostrar rematrículas em andamento
 3. Finalizar período de rematrículas (*)
 0. Sair
 
 --------------------------------------------------------
 
---- Rematrículas realizadas ---
-1. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-2. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-...
-21. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
+--- Lançamento de Notas (Fase 2) ---
+1. Inserir Notas (TODO: Função inserir notas, recebe 3 notas e a idMatricula do aluno)
+2. Consultar Notas (TODO: Função que recebe o idMatricula do aluno, retorna as disciplinas que o aluno está cursando, e lista suas notas (médias) e as notas individuas)
+3. Finalizar semestre --> retorna para a fase 0 de cadastro.
 
-Aperte enter para continuar...
+RESUMO:
 
---------------------------------------------------------
+O QUE FALTA FAZER:
+Processamento de matriculas
+Lançamento e consulta de notas.
 
---- Rematrículas indeferidas ---
 
-1. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-2. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
-...
-21. NOME - MATRICULA: NOMEDISCIPLINA CODIGOTURMA
+TODO ATUALIZADO:
 
-Aperte enter para continuar...
-
---------------------------------------------------------
-
---- Panorama geral das atividades do MiniSIGAA ---
-<uma tabela bem feita mostrando todas as alterações válidas>
-
-Aperte enter para continuar...
-
---------------------------------------------------------
-
-Deseja salvar essas alterações (y/n)?
-
+Melhorar lista professores (feito)
+Melhorar lista disciplinas (feito)
+Melhorar agenda (feito)
+Melhorar cadastro horario (poder cadastrar uma lista de horarios) (feito)
+Ver se matricula foi deferida
