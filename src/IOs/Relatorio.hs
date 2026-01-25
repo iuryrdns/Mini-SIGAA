@@ -2,7 +2,7 @@ module IOs.Relatorio (gerarRelatorioGeral) where
 
 import qualified Data.Map as Map
 import Data.List (intercalate, sortOn)
-import Sistema (Sistema(..), getAlunos, getProfessores, getDisciplinas, getTurmas, getMatriculasRealizadas)
+import Sistema (Sistema(..), getAlunos, getProfessores, getDisciplinas, getTurmas, getTurmasCadastradas, getMatriculasRealizadas)
 import Models.Aluno (getNomeAluno, getMatriculaAluno, getCursoAluno, getCraAluno)
 import Models.Professor (getNomeProfessor, getMatriculaProfessor, getDepartamentoProfessor, getFormacaoProfessor)
 import Models.Disciplina (getNomeDisciplina, getCodigoDisciplina, getRequisitosDisciplina, getCursosDisciplina)
@@ -14,7 +14,11 @@ gerarRelatorioGeral sistema =
     let alunos = Map.elems (getAlunos sistema)
         professores = Map.elems (getProfessores sistema)
         disciplinas = Map.elems (getDisciplinas sistema)
-        turmas = Map.elems (getTurmas sistema)
+        -- Combine active turmas and pending turmas
+        activeTurmas = Map.elems (getTurmas sistema)
+        pendingTurmas = Map.elems (getTurmasCadastradas sistema)
+        allTurmas = activeTurmas ++ pendingTurmas
+        
         matriculas = _matriculas sistema
         
         -- Helpers para buscar nomes
@@ -50,12 +54,12 @@ gerarRelatorioGeral sistema =
                     | d <- sortOn (unNome . getNomeDisciplina) disciplinas ]
 
         -- Formatação Turmas
-        strTurmas = if null turmas then "Nenhuma turma cadastrada.\n" else
+        strTurmas = if null allTurmas then "Nenhuma turma cadastrada.\n" else
             unlines [ "Turma " ++ show (getCodigoTurma t) ++ " - " ++ buscaDisc (getDisciplinaTurma t) ++ 
                       "\n   Professor: " ++ buscaProf (getProfessorTurma t) ++ 
                       "\n   Horário: " ++ show (getHorarioTurma t) ++ " | Sala: " ++ getSalaTurma t ++ 
                       "\n   Capacidade: " ++ show (length (getAlunosTurma t)) ++ "/" ++ show (getCapacidadeTurma t)
-                    | t <- sortOn getCodigoTurma turmas ]
+                    | t <- sortOn getCodigoTurma allTurmas ]
         
         -- Formatação Matrículas
         strMatriculas = if null matriculas then "Nenhuma matrícula efetivada.\n" else
@@ -71,7 +75,7 @@ gerarRelatorioGeral sistema =
         strProfessores ++ "\n" ++
         "--- DISCIPLINAS CADASTRADAS (" ++ show (length disciplinas) ++ ") ---\n" ++
         strDisciplinas ++ "\n" ++
-        "--- TURMAS CADASTRADAS (" ++ show (length turmas) ++ ") ---\n" ++
+        "--- TURMAS CADASTRADAS (" ++ show (length allTurmas) ++ ") ---\n" ++
         strTurmas ++ "\n" ++
         "--- MATRÍCULAS EFETIVADAS (" ++ show (length matriculas) ++ ") ---\n" ++
         strMatriculas ++ 

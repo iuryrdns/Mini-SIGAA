@@ -5,7 +5,7 @@ import System.Directory (doesFileExist, renameFile)
 import System.IO (IOMode (..), hGetContents, withFile)
 import Text.Read (readMaybe)
 
-carregarSistema :: IO Sistema
+carregarSistema :: IO (Sistema, String)
 carregarSistema = do
   existeDb <- doesFileExist dbPath
 
@@ -15,15 +15,11 @@ carregarSistema = do
 
       case readMaybe conteudo of
         Just sistemaLido -> do
-          putStrLn "Dados carregados!"
-          return sistemaLido
+          return (sistemaLido, "Dados carregados com sucesso!")
         Nothing -> do
-          putStrLn "Iniciando sistema vazio."
-          return sistemaVazio
+          return (sistemaVazio, "Erro ao ler dados. Iniciando sistema vazio.")
     else do
-      putStrLn "Nenhum arquivo encontrado."
-      putStrLn "Iniciando sistema vazio."
-      return sistemaVazio
+      return (sistemaVazio, "Nenhum arquivo encontrado. Iniciando sistema vazio.")
 
 salvarSistema :: Sistema -> IO ()
 salvarSistema sistema = do
