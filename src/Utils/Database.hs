@@ -1,7 +1,7 @@
 module Utils.Database (carregarSistema, salvarSistema) where
 
 import Sistema (Sistema, dbPath, sistemaVazio)
-import System.Directory (doesFileExist, renameFile)
+import System.Directory (doesFileExist, renameFile, removeFile)
 import System.IO (IOMode (..), hGetContents, withFile)
 import Text.Read (readMaybe)
 
@@ -29,4 +29,8 @@ salvarSistema :: Sistema -> IO ()
 salvarSistema sistema = do
   let temp = dbPath ++ ".tmp"
   writeFile temp (show sistema)
+  existeDb <- doesFileExist dbPath
+  if existeDb
+    then removeFile dbPath
+    else return ()
   renameFile temp dbPath
