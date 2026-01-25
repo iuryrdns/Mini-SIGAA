@@ -130,6 +130,19 @@ gerarRelatorioGeral sistema =
                   | (mat, codTurma) <- matriculas
                 ]
           else ""
+
+      rematriculas = _rematriculas sistema
+      strRematriculas =
+        if fase == 3 && not (null rematriculas)
+          then
+             "--- REMATRÍCULAS PENDENTES ("
+              ++ show (length rematriculas)
+              ++ ") ---\n"
+              ++ unlines
+                [ buscaAluno mat ++ " (" ++ show (unMatricula mat) ++ ") -> Turma " ++ show codTurma
+                  | (mat, codTurma) <- rematriculas
+                ]
+          else ""
    in "\n=========================================================\n"
         ++ "          RELATÓRIO GERAL DO SISTEMA\n"
         ++ "=========================================================\n\n"
@@ -154,4 +167,5 @@ gerarRelatorioGeral sistema =
         ++ strTurmas
         ++ "\n"
         ++ strMatriculas
+        ++ strRematriculas
         ++ "=========================================================\n"

@@ -41,12 +41,13 @@ main = do
     let telaInicial = TelaInicial 
     
     let opcoesMenu = case faseAtual of
-                     0 -> [ "Cadastrar Aluno", "Cadastrar Professor", "Cadastrar Disciplina", "Cadastrar Turma"
+                     0 -> ["Visualizar Relatório Geral", "Iniciar Planejamento", "Sair"]
+                     1 -> [ "Cadastrar Aluno", "Cadastrar Professor", "Cadastrar Disciplina", "Cadastrar Turma"
                           , "Listar Alunos", "Listar Professores", "Listar Turmas", "Listar Disciplinas"
                           , "Visualizar Relatório Geral", "Iniciar Matrículas", "Sair"
                           ]
-                     1 -> ["Cadastrar Matrícula", "Mostrar Solicitações", "Encerrar Matrículas", "Sair"]
-                     2 -> ["Visualizar Relatório Geral", "Iniciar Novo Semestre", "Sair"]
+                     2 -> ["Cadastrar Matrícula", "Mostrar Solicitações", "Encerrar Matrículas", "Sair"]
+                     3 -> ["Cadastrar Rematrícula", "Mostrar Rematrículas", "Finalizar Semestre", "Sair"]
                      _ -> ["Sair"]
 
     let todosOsCampos = [ EditNomeAluno, EditMatricula, EditCurso, EditCRA

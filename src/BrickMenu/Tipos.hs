@@ -34,7 +34,7 @@ data Name = MenuPrincipal
 data Tela = TelaInicial | TelaMenu | TelaCadAluno | TelaCadProfessor | TelaCadDisciplina | TelaCadTurma 
           | TelaListaAlunos | TelaListaProfessores | TelaListaTurmas | TelaListaDisciplinas
           | TelaMatriculas | TelaAgenda | TelaCadSolicitacao | TelaListaSolicitacoes
-          | TelaRelatorio | TelaConfirmacao
+          | TelaRelatorio | TelaConfirmacao | TelaConfirmacaoFimSemestre
     deriving (Eq, Show)
 
 data AppState = AppState
