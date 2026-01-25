@@ -3,11 +3,9 @@ module Models.Types where
 import Data.Char (isDigit)
 import Data.List (intersect, nub)
 
-newtype Horario = Horario String
-  deriving (Eq, Read)
-
-instance Show Horario where
-  show (Horario s) = s
+-- CORREÇÃO 1: Usamos 'type' para dizer que Horario é apenas um apelido para String.
+-- Não precisa de deriving, pois String já tem tudo isso.
+type Horario = String
 
 data DiaSemana = Seg | Ter | Qua | Qui | Sex | Sab | Dom
   deriving (Eq, Show, Enum, Ord)
@@ -49,17 +47,20 @@ unCRA (CRA c) = c
 unCodigo :: Codigo -> String
 unCodigo (Codigo c) = c
 
+-- CORREÇÃO 2: Como Horario é String, essa função apenas retorna a própria string.
 lerHorario :: String -> Horario
-lerHorario = Horario
+lerHorario s = s
 
+-- CORREÇÃO 3: Removemos o padrão (Horario h1), agora usamos a variável direto.
 horarioTemInterseccao :: Horario -> Horario -> Bool
-horarioTemInterseccao (Horario h1) (Horario h2) =
+horarioTemInterseccao h1 h2 =
   let slots1 = parseHorario h1
       slots2 = parseHorario h2
    in not (null (slots1 `intersect` slots2))
 
+-- CORREÇÃO 4: Removemos o padrão (Horario s).
 validarHorario :: Horario -> Bool
-validarHorario (Horario s) = all validarPart (words s)
+validarHorario s = all validarPart (words s)
 
 parseHorario :: String -> [Slot]
 parseHorario s = concatMap parsePart (words s)
