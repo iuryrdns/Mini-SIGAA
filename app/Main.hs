@@ -12,7 +12,7 @@ import Brick.Util (fg, on)
 import Brick.Main (App(..), defaultMain)
 import Brick.Widgets.Edit (editor)
 
-import Sistema (Sistema, getFase)
+import Sistema (Sistema)
 import Utils.Database (carregarSistema)
 import BrickMenu.Tipos
 import BrickMenu.UI (drawUI)
@@ -35,43 +35,35 @@ app = App { appDraw = drawUI
 
 main :: IO ()
 main = do
-    (sistema, msgCarregamento) <- carregarSistema
+    (sistema, msgLog) <- carregarSistema
     
-    let faseAtual = getFase sistema
-    let telaInicial = TelaInicial 
-    
-    let opcoesMenu = case faseAtual of
-                     0 -> ["Visualizar Relatório Geral", "Iniciar Planejamento", "Sair"]
-                     1 -> [ "Cadastrar Aluno", "Cadastrar Professor", "Cadastrar Disciplina", "Cadastrar Turma"
-                          , "Listar Alunos", "Listar Professores", "Listar Turmas", "Listar Disciplinas"
-                          , "Visualizar Relatório Geral", "Iniciar Matrículas", "Sair"
-                          ]
-                     2 -> ["Cadastrar Matrícula", "Mostrar Solicitações", "Encerrar Matrículas", "Sair"]
-                     3 -> ["Cadastrar Rematrícula", "Mostrar Rematrículas", "Finalizar Semestre", "Sair"]
-                     _ -> ["Sair"]
-
     let todosOsCampos = [ EditNomeAluno, EditMatricula, EditCurso, EditCRA
                         , EditMatriculaProfessor, EditNomeProfessor, EditDepto, EditFormacao
                         , EditCodigoDisciplina, EditNomeDisciplina, EditRequisitos, EditCursosPermitidos
                         , EditCodTurma, EditProfTurma, EditDiscTurma, EditHorario, EditSala, EditMaxAlunosTurma
                         , EditMatAluno, EditMatTurma
+                        , EditNotaMatricula, EditNotaCodDisc, EditNotaValor
+                        , EditPendenteSala, EditPendenteHorario
                         ]
     
     let initialForms = M.fromList [ (n, editor n (Just 1) "") | n <- todosOsCampos ]
 
     let initialState = AppState
           { _sistema              = sistema
-          , _listaMenu            = L.list MenuPrincipal (Vec.fromList opcoesMenu) 1
+          , _listaMenu            = L.list MenuPrincipal Vec.empty 1
           , _listaMenuAlunos      = L.list ListaAlunos Vec.empty 1
           , _listaMenuProfessores = L.list ListaProfessores Vec.empty 1
           , _listaMenuTurmas      = L.list ListaTurmas Vec.empty 1
           , _listaMenuDisciplinas = L.list ListaDisciplinas Vec.empty 1
           , _listaMenuSolicitacoes = L.list ListaSolicitacoes Vec.empty 1
+          , _listaConflitos       = L.list ListaConflitos Vec.empty 1
+          , _turmaEmEdicao        = Nothing
           , _textoRelatorio       = ""
-          , _telaAtiva            = telaInicial
-          , _mensagemErro         = Just msgCarregamento
+          , _telaAtiva            = TelaInicial
+          , _mensagemErro         = Just (msgLog ++ " Pressione Enter.")
           , _formularios          = initialForms
           , _foco                 = focusRing [] 
           }
+    
     _ <- defaultMain app initialState
     return ()
