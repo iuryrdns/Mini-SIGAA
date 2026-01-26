@@ -12,12 +12,9 @@ carregarSistema = do
   if existeDb
     then do
       conteudo <- readFile dbPath
-
       case readMaybe conteudo of
-        Just sistemaLido -> do
-          return (sistemaLido, "Dados carregados com sucesso!")
-        Nothing -> do
-          return (sistemaVazio, "Erro ao ler dados. Iniciando sistema vazio.")
+        Just sistemaLido -> return (sistemaLido, "Dados carregados com sucesso!")
+        Nothing -> return (sistemaVazio, "Erro ao ler arquivo. Iniciando sistema vazio.")
     else do
       return (sistemaVazio, "Nenhum arquivo encontrado. Iniciando sistema vazio.")
 
