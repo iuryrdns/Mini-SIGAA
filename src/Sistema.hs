@@ -1,10 +1,10 @@
 module Sistema where
 
 import Data.List (sortBy)
-import Data.Map as Map (Map, delete, elems, empty, findWithDefault, insert, member, toList, union, (!))
+import Data.Map as Map (Map, delete, elems, empty, findWithDefault, insert, member, toList, union, (!), lookup)
 import qualified Data.Map as M
 import Data.Ord (Down (..), comparing)
-import Models.Aluno (Aluno, getCraAluno, getCursoAluno, getDisciplinasConcluidas, getMatriculaAluno, getNomeAluno)
+import Models.Aluno (Aluno(..), getCraAluno, getCursoAluno, getDisciplinasConcluidas, getMatriculaAluno, getNomeAluno, adicionarNota, getNotasAluno)
 import Models.Disciplina (Disciplina, getCodigoDisciplina, getCursosDisciplina, getNomeDisciplina, getRequisitosDisciplina)
 import Models.Professor (Professor, getMatriculaProfessor)
 import Models.Turma (Turma, adicionarAlunoTurma, getAlunosTurma, getCapacidadeTurma, getCodigoTurma, getDisciplinaTurma, getHorarioTurma, getProfessorTurma, getSalaTurma, limparAlunosTurma, setHorarioTurma, setSalaTurma)
@@ -16,10 +16,10 @@ data Sistema = Sistema
   { _alunos :: Map.Map Matricula Aluno,
     _professores :: Map.Map Matricula Professor,
     _disciplinas :: Map.Map Codigo Disciplina,
-    _matriculas :: [(Matricula, Int)],
-    _rematriculas :: [(Matricula, Int)],
-    _turmas :: Map.Map Int Turma,
-    _cadastroDeTurmas :: Map.Map Int Turma,
+    _matriculas :: [(Matricula, Codigo)], 
+    _rematriculas :: [(Matricula, Codigo)], 
+    _turmas :: Map.Map Codigo Turma, 
+    _cadastroDeTurmas :: Map.Map Codigo Turma,
     _fase :: Int
   }
   deriving (Show, Read)
@@ -37,7 +37,7 @@ sistemaVazio =
       _rematriculas = [],
       _turmas = Map.empty,
       _cadastroDeTurmas = Map.empty,
-      _fase = 0
+      _fase = 0 
     }
 
 efetivarAlteracoes :: Sistema -> Sistema
@@ -59,43 +59,46 @@ cadastrar getId getMap updateSystem nomeEntidade item sistema =
               novoSistema = updateSystem novoMapa sistema
            in Right novoSistema
 
+
 abrirPeriodoMatriculas :: Sistema -> Either String Sistema
 abrirPeriodoMatriculas sistema
-  | _fase sistema == 1 = Right sistema {_fase = 2, _matriculas = [], _rematriculas = []}
-  | otherwise = Left "O sistema precisa estar na Fase 1 (Alterações Gerais) para abrir matrículas."
+  | _fase sistema == 0 = Right sistema {_fase = 1, _matriculas = [], _rematriculas = []}
+  | otherwise = Left "O sistema precisa estar na Fase 0 (Planejamento) para abrir matrículas."
 
 abrirPeriodoRematriculas :: Sistema -> Either String Sistema
 abrirPeriodoRematriculas sistema
-  | _fase sistema == 2 = Right sistema {_fase = 3}
-  | otherwise = Left "O sistema precisa estar na Fase 2 (Matrícula) para abrir rematrículas."
+  | _fase sistema == 1 = Right sistema {_fase = 2}
+  | otherwise = Left "O sistema precisa estar na Fase 1 (Matrícula) para abrir rematrículas."
 
 finalizarSemestre :: Sistema -> Either String Sistema
 finalizarSemestre sistema
-  | _fase sistema == 3 =
-       let turmasLimpas = M.map limparAlunosTurma (_turmas sistema)
+  | _fase sistema == 2 = Right sistema {_fase = 3}
+  | otherwise = Left "O sistema precisa estar na Fase 2 (Rematrícula) para finalizar."
+
+iniciarNovoSemestre :: Sistema -> Either String Sistema
+iniciarNovoSemestre sistema =
+  case _fase sistema of
+    4 -> 
+      let turmasLimpas = M.map limparAlunosTurma (_turmas sistema)
        in Right sistema {_fase = 0, _matriculas = [], _rematriculas = [], _turmas = turmasLimpas}
-  | otherwise = Left "O sistema precisa estar na Fase 3 (Rematrícula) para finalizar."
+    0 -> Left "Sistema já está em fase de planejamento!"
+    _ -> Left "É necessário finalizar o semestre (Fase 4) antes de iniciar um novo."
 
-iniciarPlanejamento :: Sistema -> Either String Sistema
-iniciarPlanejamento sistema
-  | _fase sistema == 0 = Right sistema {_fase = 1}
-  | otherwise = Left "O sistema precisa estar na Fase 0 (Ocioso) para iniciar o planejamento."
-
-realizarMatricula :: Matricula -> Int -> Sistema -> Either String Sistema
-realizarMatricula matricula idTurma sistema
+realizarMatricula :: Matricula -> Codigo -> Sistema -> Either String Sistema
+realizarMatricula matricula codigoTurma sistema
   | not (Map.member matricula (_alunos sistema)) = Left "Aluno não cadastrado"
-  | not (Map.member idTurma (_turmas sistema)) = Left "Turma não cadastrada"
+  | not (Map.member codigoTurma (_turmas sistema)) = Left "Turma não cadastrada"
   | alunoJaNaTurma = Left "Aluno já está matriculado nesta turma!"
   | cursoAluno `notElem` cursosPermitidos = Left "Disciplina não disponível para o curso do aluno"
   | not (all (`elem` disciplinasConcluidas) requisitos) = Left "Aluno não cumpre os pré-requisitos"
-  | (matricula, idTurma) `elem` _matriculas sistema = Left "Aluno já matriculado!"
-  | (matricula, idTurma) `elem` _rematriculas sistema = Left "Aluno já matriculado!"
-  | _fase sistema == 3 =
-      Right sistema {_rematriculas = (matricula, idTurma) : _rematriculas sistema}
+  | (matricula, codigoTurma) `elem` _matriculas sistema = Left "Aluno já matriculado!"
+  | (matricula, codigoTurma) `elem` _rematriculas sistema = Left "Aluno já matriculado!"
+  | _fase sistema == 2 = 
+      Right sistema {_rematriculas = (matricula, codigoTurma) : _rematriculas sistema}
   | otherwise =
-      Right sistema {_matriculas = (matricula, idTurma) : _matriculas sistema}
+      Right sistema {_matriculas = (matricula, codigoTurma) : _matriculas sistema}
   where
-    turmaEncontrada = _turmas sistema ! idTurma
+    turmaEncontrada = _turmas sistema ! codigoTurma
     aluno = _alunos sistema ! matricula
     alunosNaTurma = getAlunosTurma turmaEncontrada
     alunoJaNaTurma = matricula `elem` map getMatriculaAluno alunosNaTurma
@@ -104,6 +107,9 @@ realizarMatricula matricula idTurma sistema
     cursosPermitidos = getCursosDisciplina disciplina
     disciplinasConcluidas = getDisciplinasConcluidas aluno
     requisitos = map unCodigo (getRequisitosDisciplina disciplina)
+
+finalizarPeriodoMatriculas :: Sistema -> Sistema
+finalizarPeriodoMatriculas = id
 
 cadastrarAluno :: Aluno -> Sistema -> Either String Sistema
 cadastrarAluno = cadastrar getMatriculaAluno _alunos (\m s -> s {_alunos = m}) "Aluno"
@@ -124,7 +130,7 @@ cadastrarTurma turma sistema
       let novoCadastro = Map.insert (getCodigoTurma turma) turma (_cadastroDeTurmas sistema)
        in Right sistema {_cadastroDeTurmas = novoCadastro}
 
-editarTurmaPendente :: Int -> Maybe String -> Maybe String -> Sistema -> Either String Sistema
+editarTurmaPendente :: Codigo -> Maybe String -> Maybe String -> Sistema -> Either String Sistema
 editarTurmaPendente codigoTurma novaSala novoHorario sistema
   | not (Map.member codigoTurma (_cadastroDeTurmas sistema)) = Left "Turma não encontrada nas operações pendentes"
   | otherwise =
@@ -134,7 +140,7 @@ editarTurmaPendente codigoTurma novaSala novoHorario sistema
           novoCadastro = Map.insert codigoTurma turmaAtualizada (_cadastroDeTurmas sistema)
        in Right sistema {_cadastroDeTurmas = novoCadastro}
 
-removerTurmaPendente :: Int -> Sistema -> Either String Sistema
+removerTurmaPendente :: Codigo -> Sistema -> Either String Sistema
 removerTurmaPendente codigoTurma sistema
   | not (Map.member codigoTurma (_cadastroDeTurmas sistema)) = Left "Turma não encontrada nas operações pendentes"
   | otherwise = Right sistema {_cadastroDeTurmas = Map.delete codigoTurma (_cadastroDeTurmas sistema)}
@@ -158,10 +164,10 @@ getProfessores = _professores
 getDisciplinas :: Sistema -> Map.Map Codigo Disciplina
 getDisciplinas = _disciplinas
 
-getTurmas :: Sistema -> Map.Map Int Turma
+getTurmas :: Sistema -> Map.Map Codigo Turma
 getTurmas = _turmas
 
-getTurmasCadastradas :: Sistema -> Map.Map Int Turma
+getTurmasCadastradas :: Sistema -> Map.Map Codigo Turma
 getTurmasCadastradas = _cadastroDeTurmas
 
 setFase :: Sistema -> Int -> Sistema
@@ -175,10 +181,9 @@ getMatriculasRealizadas sistema
   | null listaMatriculas = Left mensagemErro
   | otherwise = Right relatorioMatriculas
   where
-    (listaMatriculas, mensagemErro) =
-      if _fase sistema == 3
-        then (_rematriculas sistema, "Não há nenhuma rematrícula!")
-        else (_matriculas sistema, "Não há nenhuma matrícula!")
+    (listaMatriculas, mensagemErro) = if _fase sistema == 2
+                                      then (_rematriculas sistema, "Não há nenhuma rematrícula!")
+                                      else (_matriculas sistema, "Não há nenhuma matrícula!")
 
     lista = zip [1 ..] listaMatriculas
 
@@ -191,7 +196,7 @@ getMatriculasRealizadas sistema
           nomeAluno = unNome (getNomeAluno aluno)
           matrAluno = show (unMatricula idAluno)
           nomeDisc = unNome (getNomeDisciplina disciplina)
-          codTurma = show (getCodigoTurma turma)
+          codTurma = unCodigo (getCodigoTurma turma)
        in show idx ++ ". " ++ nomeAluno ++ " - " ++ matrAluno ++ ": " ++ nomeDisc ++ " " ++ codTurma
     relatorioMatriculas = unlines (map montarLinha lista)
 
@@ -200,8 +205,8 @@ getTurmasConflitantes sistema =
   let turmasNovas = M.elems (_cadastroDeTurmas sistema)
       turmasExistentes = M.elems (_turmas sistema)
       temConflito t1 t2 = getSalaTurma t1 == getSalaTurma t2 && horarioTemInterseccao (getHorarioTurma t1) (getHorarioTurma t2)
-   in [(t1, t2) | t1 <- turmasNovas, t2 <- turmasExistentes, temConflito t1 t2]
-        ++ [(t1, t2) | t1 <- turmasNovas, t2 <- turmasNovas, getCodigoTurma t1 < getCodigoTurma t2, temConflito t1 t2]
+   in [(t1, t2) | t1 <- turmasNovas, t2 <- turmasExistentes, temConflito t1 t2] ++
+      [(t1, t2) | t1 <- turmasNovas, t2 <- turmasNovas, getCodigoTurma t1 < getCodigoTurma t2, temConflito t1 t2]
 
 compararAlunos :: Sistema -> Matricula -> Matricula -> Ordering
 compararAlunos sistema a1 a2 =
@@ -212,14 +217,13 @@ compararAlunos sistema a1 a2 =
     maisNota = comparing (Down . getNota) a1 a2
     ordemMatricula = comparing unMatricula a1 a2
 
-obterMatriculasProcessadas :: Sistema -> (M.Map Int [Matricula], M.Map Int [Matricula])
+obterMatriculasProcessadas :: Sistema -> (M.Map Codigo [Matricula], M.Map Codigo [Matricula])
 obterMatriculasProcessadas sistema =
-  let todasMatriculas =
-        if _fase sistema == 3
-          then _rematriculas sistema
-          else _matriculas sistema
+  let todasMatriculas = if _fase sistema == 2 
+                        then _rematriculas sistema
+                        else _matriculas sistema
       turmas = M.fromListWith (++) [(v, [k]) | (k, v) <- todasMatriculas]
-
+      
       processarTurma k vs =
         case M.lookup k (_turmas sistema) of
           Nothing -> ([], vs)
@@ -233,10 +237,10 @@ obterMatriculasProcessadas sistema =
       turmasProcessadas = M.mapWithKey processarTurma turmas
    in (M.map fst turmasProcessadas, M.map snd turmasProcessadas)
 
-processarListaMatriculas :: Sistema -> [(Matricula, Int)] -> Sistema
+processarListaMatriculas :: Sistema -> [(Matricula, Codigo)] -> Sistema
 processarListaMatriculas sistema listaMatriculas =
   let turmas = M.fromListWith (++) [(v, [k]) | (k, v) <- listaMatriculas]
-
+      
       tentarAdicionarAluno turmaAtual matriculaAluno =
         case M.lookup matriculaAluno (_alunos sistema) of
           Nothing -> turmaAtual
@@ -244,24 +248,54 @@ processarListaMatriculas sistema listaMatriculas =
             let capacidade = getCapacidadeTurma turmaAtual
                 numAlunosAtuais = length (getAlunosTurma turmaAtual)
              in if numAlunosAtuais < capacidade
-                  then adicionarAlunoTurma turmaAtual aluno
-                  else turmaAtual
-
+                then adicionarAlunoTurma turmaAtual aluno
+                else turmaAtual
+      
       processarTurma turmaId matriculasAlunos turmasAtuais =
         case M.lookup turmaId turmasAtuais of
           Nothing -> turmasAtuais
           Just turma ->
-            let alunosOrdenados = sortBy (compararAlunos sistema) matriculasAlunos
+            let 
+                alunosOrdenados = sortBy (compararAlunos sistema) matriculasAlunos
                 turmaAtualizada = foldl tentarAdicionarAluno turma alunosOrdenados
              in M.insert turmaId turmaAtualizada turmasAtuais
-
+      
       turmasAtualizadas = M.foldrWithKey processarTurma (_turmas sistema) turmas
-   in sistema {_turmas = turmasAtualizadas}
+      
+   in sistema { _turmas = turmasAtualizadas }
 
 processarMatriculas :: Sistema -> Sistema
 processarMatriculas sistema =
-  let todasMatriculas =
-        if _fase sistema == 3
-          then _rematriculas sistema
-          else _matriculas sistema
+  let todasMatriculas = if _fase sistema == 2 
+                        then _rematriculas sistema
+                        else _matriculas sistema
    in processarListaMatriculas sistema todasMatriculas
+
+adicionarNotasSistema :: Matricula -> Codigo -> Int -> Sistema -> Either String Sistema
+adicionarNotasSistema matricula codigo nota sistema =
+  case Map.lookup matricula (_alunos sistema) of
+    Nothing -> Left "Aluno não encontrado!"
+    Just aluno ->
+      if not (Map.member codigo (_disciplinas sistema))
+        then Left "Disciplina não encontrada!"
+        else
+          let 
+              alunoComNota = adicionarNota aluno codigo nota
+              notasDaDisciplina = Map.findWithDefault [] codigo (getNotasAluno alunoComNota)
+              
+              soma = sum notasDaDisciplina
+              qtd = length notasDaDisciplina
+              
+              media = if qtd > 0 
+                      then fromIntegral soma / fromIntegral qtd 
+                      else 0.0
+              
+              codigoStr = unCodigo codigo
+              jaConcluiu = codigoStr `elem` _disciplinasConcluidas alunoComNota
+              alunoAtualizado = 
+                if media >= 7.0 && qtd >= 3 && not jaConcluiu
+                  then alunoComNota { _disciplinasConcluidas = codigoStr : _disciplinasConcluidas alunoComNota }
+                  else alunoComNota
+              
+              novosAlunos = Map.insert matricula alunoAtualizado (_alunos sistema)
+           in Right sistema { _alunos = novosAlunos }
