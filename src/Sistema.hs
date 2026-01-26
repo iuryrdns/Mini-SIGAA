@@ -20,7 +20,7 @@ module Sistema
   , finalizarSemestre
   , lancarNotas
     -- * Relatórios e Getters
-  , getRelatorioSolicitacoes
+  --, getRelatorioSolicitacoes
   , getAlunos
   , getTurmas
   , getFase
@@ -37,7 +37,7 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 
 -- Importações de Modelos
-import Models.Types (Matricula, Codigo, Solicitacao(..), StatusSolicitacao(..), ResultadoProcessamento(..), horarioTemInterseccao, listasHorarioConflitam)
+import Models.Types (Matricula, Codigo, Solicitacao(..), StatusSolicitacao(..), ResultadoProcessamento(..), listasHorarioConflitam)
 import Models.Aluno (Aluno, NotasDisciplina(..))
 import qualified Models.Aluno as A
 import Models.Disciplina (Disciplina)
@@ -53,25 +53,25 @@ import qualified Models.Turma as T
 
 -- | Estrutura central que armazena todos os dados em memória.
 data Sistema = Sistema
-  { _alunos       :: M.Map Matricula Aluno
-  , _professores  :: M.Map Matricula Professor
-  , _disciplinas  :: M.Map Codigo Disciplina
-  , _turmas       :: M.Map Int Turma -- ^ Mape código da turma para a entidade Turma
-  , _solicitacoes :: [Solicitacao] -- ^ Fila de espera para processamento
-  , _historicoProc :: [ResultadoProcessamento] -- ^ Histórico de processamentos de solicitações
-  , _fase         :: Int           -- ^ 0: Planejamento, 1: Matrícula, 2: Semestre Ativo
+  { _alunos         :: M.Map Matricula Aluno
+  , _professores    :: M.Map Matricula Professor
+  , _disciplinas    :: M.Map Codigo Disciplina
+  , _turmas         :: M.Map Int Turma          -- ^ Mape código da turma para a entidade Turma
+  , _solicitacoes   :: [Solicitacao]            -- ^ Fila de espera para processamento
+  , _historicoProc  :: [ResultadoProcessamento] -- ^ Histórico de processamentos de solicitações
+  , _fase           :: Int                      -- ^ 0: Planejamento, 1: Matrícula, 2: Semestre Ativo
   } deriving (Show, Generic, ToJSON, FromJSON)
 
 -- | Estado inicial padrão
 sistemaVazio :: Sistema
 sistemaVazio = Sistema
-  { _alunos       = M.empty
-  , _professores  = M.empty
-  , _disciplinas  = M.empty
-  , _turmas       = M.empty
-  , _solicitacoes = []
-  , _historicoProc = []
-  , _fase         = 0
+  { _alunos         = M.empty
+  , _professores    = M.empty
+  , _disciplinas    = M.empty
+  , _turmas         = M.empty
+  , _solicitacoes   = []
+  , _historicoProc  = []
+  , _fase           = 0
   }
 
 -------------------------------------------------------------------------------
@@ -104,22 +104,22 @@ cadastrarDisciplina :: Disciplina -> Sistema -> Either String Sistema
 cadastrarDisciplina disc sistema
   | not (all (\req -> M.member req (_disciplinas sistema)) (D.getPreRequisitosDisciplina disc)) =
       Left "Um ou mais pré-requisitos informados não estão cadastrados!"
-  | otherwise = 
+  | otherwise =
       cadastrar D.getCodigoDisciplina _disciplinas (\m s -> s {_disciplinas = m}) "Disciplina" disc sistema
 
 -- | Cadastra uma nova turma no sistema.
 cadastrarTurma :: Turma -> Sistema -> Either String Sistema
 cadastrarTurma turma sistema
-  | not (M.member (T.getProfessorTurma turma) (_professores sistema)) = 
+  | not (M.member (T.getProfessorTurma turma) (_professores sistema)) =
       Left "Erro: Professor não cadastrado!"
-  
-  | not (M.member (T.getDisciplinaTurma turma) (_disciplinas sistema)) = 
+
+  | not (M.member (T.getDisciplinaTurma turma) (_disciplinas sistema)) =
       Left "Erro: Disciplina não existe!"
 
-  | checarConflitoGeral turma sistema = 
-      Left "Erro: Conflito de horário! Já existe uma turma neste slot." 
+  | checarConflitoGeral turma sistema =
+      Left "Erro: Conflito de horário! Já existe uma turma neste slot."
 
-  | otherwise = 
+  | otherwise =
       cadastrar T.getCodigoTurma _turmas (\m s -> s {_turmas = m}) "Turma" turma sistema
 
 -------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ cadastrarSolicitacao idA idT sis = do
 
     -- 2. Validação de Choque de Horário
     let turmasJaPedidas = [ t | s <- _solicitacoes sis, _sMatricula s == idA, (identifier, t) <- M.toList (_turmas sis), identifier == _sTurma s ]
-        choque = any (\t -> listasHorarioConflitam (T.getHorarioTurma turmaAlvo) (T.getHorarioTurma t)) turmasJaPedidas
+        choque = any (listasHorarioConflitam (T.getHorarioTurma turmaAlvo) . T.getHorarioTurma) turmasJaPedidas
     if choque then Left "Choque de horário com outra solicitação!" else Right ()
 
     -- 3. Duplicidade
@@ -195,7 +195,7 @@ efetivarMatriculas sis =
                          then Aceita
                          else Recusada "Vagas esgotadas (Critério: CRA)"
             in ResultadoProcessamento mat idT status
-        
+
         historicoFinal = map gerarResultado (_solicitacoes sis)
 
     in sis { _turmas = novasTurmas
@@ -231,31 +231,17 @@ finalizarSemestre s = s
 checarConflitoGeral :: Turma -> Sistema -> Bool
 checarConflitoGeral novaTurma sistema =
     let turmasAtuais = M.elems (_turmas sistema)
-        
-        conflita t = 
+
+        conflita t =
             let mesmoHorario = listasHorarioConflitam (T.getHorarioTurma t) (T.getHorarioTurma novaTurma)
                 mesmaSala    = T.getSalaTurma t == T.getSalaTurma novaTurma
             in mesmoHorario && mesmaSala
-            
+
     in any conflita turmasAtuais
 
 -------------------------------------------------------------------------------
 -- Getters
 -------------------------------------------------------------------------------
-
--- | Gera um relatório textual das solicitações de matrícula pendentes.
-getRelatorioSolicitacoes :: Sistema -> Either String String
-getRelatorioSolicitacoes sistema
-  | null (_solicitacoes sistema) = Left "Não há solicitações pendentes!"
-  | otherwise = Right $ unlines $ map montarLinha (zip [1..] (_solicitacoes sistema))
-  where
-    montarLinha (idx, sol) =
-      let idA = _sMatricula sol
-          idT = _sTurma sol
-          aluno = _alunos sistema M.! idA
-          turma = _turmas sistema M.! idT
-          disc  = _disciplinas sistema M.! T.getDisciplinaTurma turma
-      in show idx ++ ". [Pendente] " ++ A.getNomeAluno aluno ++ " -> " ++ D.getNomeDisciplina disc
 
 -- | Retorna o mapa de alunos do sistema.
 getAlunos :: Sistema -> M.Map Int Aluno

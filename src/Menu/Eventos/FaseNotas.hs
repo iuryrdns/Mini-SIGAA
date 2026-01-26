@@ -104,10 +104,7 @@ handleMenuSelectionFaseNotas st = case L.listSelectedElement (st^.listaMenu) of
             { _telaAtiva = TelaListaResultados
             , _listaMenuResultados = L.list ListaResultados (Vec.fromList resultados) 1 
             }
-    {-
-    Just (_, "Listar Alunos") -> do
-        let todosAlunos = M.elems (_alunos (st^.sistema))
-        modify $ \s -> s { _telaAtiva = TelaListaAlunos, _listaMenuAlunos = L.list ListaAlunos (Vec.fromList todosAlunos) 1 }-}
+            
     -- Finalização do Ciclo: Notas -> Cadastro (Fase 0)
     Just (_, "Finalizar Semestre") -> do
         -- 1. Reinicia o sistema (fase 0) mantendo dados persistentes

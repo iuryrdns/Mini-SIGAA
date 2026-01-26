@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 {-|
 Module      : Events
 Description : Gerenciamento de eventos e roteamento de entrada do usuário.

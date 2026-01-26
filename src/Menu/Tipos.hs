@@ -89,18 +89,18 @@ data Tela = TelaMenu
 -- | O estado consolidado da aplicação.
 -- Contém os dados de negócio (Sistema) e o estado da interface (Listas, Foco, Campos).
 data AppState = AppState
-  { _sistema              :: Sistema              -- ^ Dados lógicos do SIGAA
-  , _listaMenu            :: L.List Name String   -- ^ Menu principal de navegação
-  , _listaMenuAlunos      :: L.List Name Aluno    -- ^ Visualização de alunos
-  , _listaMenuProfessores :: L.List Name Professor-- ^ Visualização de professores
-  , _listaMenuDisciplinas :: L.List Name Disciplina -- ^ Visualização de disciplinas
-  , _listaMenuSolicitacoes:: L.List Name Solicitacao -- ^ Visualização de matrículas
+  { _sistema              :: Sistema                            -- ^ Dados lógicos do SIGAA
+  , _listaMenu            :: L.List Name String                 -- ^ Menu principal de navegação
+  , _listaMenuAlunos      :: L.List Name Aluno                  -- ^ Visualização de alunos
+  , _listaMenuProfessores :: L.List Name Professor              -- ^ Visualização de professores
+  , _listaMenuDisciplinas :: L.List Name Disciplina             -- ^ Visualização de disciplinas
+  , _listaMenuSolicitacoes:: L.List Name Solicitacao            -- ^ Visualização de matrículas
   , _listaMenuResultados  :: L.List Name ResultadoProcessamento -- ^ Visualização de resultados de matrículas
   , _listaMenuNotas       :: L.List Name (Int, NotasDisciplina) -- ^ Visualização de notas
-  , _telaAtiva            :: Tela                 -- ^ Controle de navegação atual
-  , _mensagemErro         :: Maybe String         -- ^ Feedback para o usuário
-  , _formularios          :: M.Map Name (Editor String Name) -- ^ Coleção de campos de texto
-  , _foco                 :: FocusRing Name       -- ^ Gerenciador de foco (TAB)
+  , _telaAtiva            :: Tela                               -- ^ Controle de navegação atual
+  , _mensagemErro         :: Maybe String                       -- ^ Feedback para o usuário
+  , _formularios          :: M.Map Name (Editor String Name)    -- ^ Coleção de campos de texto
+  , _foco                 :: FocusRing Name                     -- ^ Gerenciador de foco (TAB)
   }
 
 -- Geração automática de Lenses para os campos do AppState

@@ -30,8 +30,6 @@ library
                     , Models.Professor
                     , Models.Disciplina
                     , Models.Turma
-                    , Models.Matricula
-                    , Models.PerfilAcademico
                     , Models.Types
                     , Sistema
                     , Utils.Database

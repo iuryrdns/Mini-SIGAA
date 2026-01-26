@@ -28,8 +28,7 @@ import Models.Aluno
 import Models.Professor
 import Models.Disciplina
 import Models.Turma
-import qualified Models.Turma as T
-import Models.Types (Matricula, Codigo, Horario(..))
+import Models.Types (Horario(..))
 import Utils.Database (salvarSistema)
 
 -------------------------------------------------------------------------------
@@ -197,15 +196,6 @@ extrairLancamentoNota st = do
     
     -- Placeholder para futura lógica de lançamento
     lancarNotas idA idT val1 val2 val3 (st^.sistema)
-
--- | Processa a consulta de notas e retorna uma string formatada para exibição.
-exibirResultadoConsulta :: AppState -> Either String String
-exibirResultadoConsulta st = do
-    matTxt <- Right (getCampo EditConsultaMatricula st)
-    
-    if null matTxt 
-       then Left "Digite uma matrícula"
-       else return $ "Aluno " ++ matTxt ++ " - Média: 8.5 [APROVADO (Simulação)]"
 
 -------------------------------------------------------------------------------
 -- UTILITÁRIOS DE PARSING E STRING

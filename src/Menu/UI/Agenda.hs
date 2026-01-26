@@ -11,16 +11,8 @@ module Menu.UI.Agenda (drawAgenda) where
 
 -- Bibliotecas Externas
 import Brick
-import Brick.Widgets.Center (center, hCenter)
+import Brick.Widgets.Center (hCenter)
 import Brick.Widgets.Border (borderWithLabel)
-import Brick.Widgets.Table
-  ( renderTable
-  , columnBorders
-  , rowBorders
-  , setDefaultColAlignment
-  , table
-  , alignCenter
-  , Table)
 import qualified Brick.Widgets.Table as T
 import Lens.Micro ((^.))
 import Data.List (intersperse)
@@ -28,7 +20,7 @@ import qualified Data.Map as M
 
 -- Modelos e Tipos
 import Models.Disciplina (getNomeDisciplina)
-import Models.Types (DiaSemana(..), Horario(..), parseHorario, Slot)
+import Models.Types (DiaSemana(..), Horario(..), parseHorario)
 import Models.Turma (getDisciplinaTurma, getHorarioTurma, getCodigoTurma)
 import Sistema (Sistema(..))
 import Menu.Tipos
@@ -90,7 +82,6 @@ drawAgenda st =
           Qua -> "Quarta-Feira"
           Qui -> "Quinta-Feira"
           Sex -> "Sexta-Feira"
-          _   -> show d
 
         header =
           map (withAttr (attrName "logo")

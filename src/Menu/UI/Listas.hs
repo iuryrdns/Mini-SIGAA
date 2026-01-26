@@ -24,7 +24,6 @@ import Data.Maybe (fromMaybe)
 import Text.Printf (printf)
 import qualified Brick.Widgets.List as L
 import qualified Data.Map as M
-import qualified Data.Maybe as Maybe
 
 -- Módulos de UI e Sistema
 import Menu.UI.Common (templateUI)
@@ -36,7 +35,6 @@ import qualified Models.Aluno as A
 import qualified Models.Professor as B
 import qualified Models.Disciplina as D
 import qualified Models.Turma as T
-import qualified Models.Matricula as MTR
 import Models.Types (Solicitacao(..), StatusSolicitacao(..), ResultadoProcessamento(..))
 
 -------------------------------------------------------------------------------
@@ -124,28 +122,41 @@ drawListaDisciplinas s = templateUI " Lista de Disciplinas " $
 drawListaSolicitacoes :: AppState -> Widget Name
 drawListaSolicitacoes s = templateUI " Solicitações Pendentes " $
     let sis = s^.sistema
-        -- O segundo argumento agora é do tipo Solicitacao
+        
+        -- Definição das larguras das colunas para fácil ajuste
+        wMat  = 12
+        wNome = 30
+        
         desenhaLinha selecionado sol =
             let estilo = if selecionado then withAttr L.listSelectedAttr else id
-                -- Acessamos os campos diretamente do record Solicitacao
                 idA = _sMatricula sol
                 idT = _sTurma sol
 
-                -- Busca o nome do Aluno
+                
                 nomeA = maybe (show idA) A.getNomeAluno (M.lookup idA (_alunos sis))
-
-                -- Busca o nome da Disciplina através da Turma
-                nomeD = Maybe.fromMaybe "Turma/Disc. Inexistente" $ do
+                nomeD = fromMaybe "Inexistente" $ do
                             t <- M.lookup idT (_turmas sis)
                             d <- M.lookup (T.getDisciplinaTurma t) (_disciplinas sis)
                             return $ D.getNomeDisciplina d
 
-                info = nomeA ++ " -> " ++ nomeD ++ " (Turma " ++ show idT ++ ")"
-            in estilo $ str info
+                colMat   = hLimit wMat  $ padRight Max $ withAttr (attrName "destaque") $ str (show idA)
+                colAluno = hLimit wNome $ padRight Max $ str (take (wNome - 2) nomeA)
+                colDisc  = withAttr (attrName "sucesso") $ str nomeD
+                colTurma = withAttr (attrName "info") $ str (" [T" ++ show idT ++ "]")
 
-    in vBox [ vLimit 15 $ L.renderList desenhaLinha True (s^.listaMenuSolicitacoes)
-            , str " "
-            , hCenter $ str "[Esc] Voltar ao Menu"
+                linha = hBox [ colMat, colAluno, colDisc, colTurma ]
+            in estilo linha
+
+        cabecalho = withAttr (attrName "bold") $ 
+                    hBox [ hLimit wMat  $ padRight Max $ str "MATRÍCULA"
+                         , hLimit wNome $ padRight Max $ str "ALUNO"
+                         , str "DISCIPLINA [TURMA]"
+                         ]
+                         
+    in vBox [ padLeft (Pad 1) $ padBottom (Pad 1) cabecalho
+            , vLimit 15 $ L.renderList desenhaLinha True (s^.listaMenuSolicitacoes)
+            , fill ' '
+            , hCenter $ withAttr (attrName "info") $ str "[Esc] Voltar | [↑↓] Navegar"
             ]
 
 -- | Renderiza os resultados do processamento de matrículas.
@@ -171,7 +182,7 @@ drawListaResultados s = templateUI " Resultado do Processamento de Matrículas "
                 -- Formatação por Status
                 (prefixo, attrStatus) = case status of
                     Aceita -> ("[ACEITA]   ", attrName "sucesso")
-                    Recusada motivo -> ("[RECUSADA] ", attrName "erro")
+                    Recusada _ -> ("[RECUSADA] " , attrName "erro")
                 
                 textoInfo = nomeA ++ " -> " ++ nomeD ++ " (Turma " ++ show idT ++ ")"
                 

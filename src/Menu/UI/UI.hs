@@ -34,27 +34,27 @@ drawUI s = [center $ vBox [ui, drawFeedback s]]
     -- Roteamento de telas baseado no estado
     ui = case s^.telaAtiva of
         -- Menus Genéricos
-        TelaMenu             -> drawGenericMenu s " Menu Principal " "[Enter] Selecionar | [Esc] Sair"
-        TelaMatriculas       -> drawGenericMenu s " Período de Matrículas (Fase 1) " "[Enter] Selecionar | [Esc] Sair do Programa"
-        TelaMenuNotas         -> drawGenericMenu s " Lançamento de Notas (Fase 2) " "[Enter] Selecionar | [Esc] Sair do Programa"
+        TelaMenu        -> drawGenericMenu s " Menu Principal " "[Enter] Selecionar | [Esc] Sair"
+        TelaMatriculas  -> drawGenericMenu s " Período de Matrículas (Fase 1) " "[Enter] Selecionar | [Esc] Sair do Programa"
+        TelaMenuNotas   -> drawGenericMenu s " Lançamento de Notas (Fase 2) " "[Enter] Selecionar | [Esc] Sair do Programa"
         
         -- Telas de Cadastro (Formulários)
-        TelaCadAluno         -> templateUI " Cadastro de Aluno " $ drawForm camposAluno s
-        TelaCadProfessor     -> templateUI " Cadastro de Professor " $ drawForm camposProfessor s
-        TelaCadDisciplina    -> templateUI " Cadastro de Disciplina " $ drawForm camposDisciplina s
-        TelaCadTurma         -> templateUI " Cadastro de Turma " $ drawForm camposTurma s
-        TelaCadSolicitacao -> templateUI " Solicitar Matrícula " $ drawForm camposSolicitacao s
-        TelaInserirNotas       -> templateUI " Lançamento de Notas " $ drawForm camposNotas s
-        TelaConsultarNotas     -> templateUI " Consulta de Desempenho " $ drawForm camposConsulta s
+        TelaCadAluno            -> templateUI " Cadastro de Aluno " $ drawForm camposAluno s
+        TelaCadProfessor        -> templateUI " Cadastro de Professor " $ drawForm camposProfessor s
+        TelaCadDisciplina       -> templateUI " Cadastro de Disciplina " $ drawForm camposDisciplina s
+        TelaCadTurma            -> templateUI " Cadastro de Turma " $ drawForm camposTurma s
+        TelaCadSolicitacao      -> templateUI " Solicitar Matrícula " $ drawForm camposSolicitacao s
+        TelaInserirNotas        -> templateUI " Lançamento de Notas " $ drawForm camposNotas s
+        TelaConsultarNotas      -> templateUI " Consulta de Desempenho " $ drawForm camposConsulta s
 
         -- Telas de Listagem e Visualização
-        TelaListaAlunos      -> drawListaAlunos s
-        TelaListaProfessores -> drawListaProfessores s
-        TelaListaDisciplinas  -> drawListaDisciplinas s
-        TelaAgenda           -> drawAgenda s
-        TelaListaSolicitacoes -> drawListaSolicitacoes s
-        TelaExibirNotasAluno  -> drawTabelaNotas s
-        TelaListaResultados   -> drawListaResultados s
+        TelaListaAlunos         -> drawListaAlunos s
+        TelaListaProfessores    -> drawListaProfessores s
+        TelaListaDisciplinas    -> drawListaDisciplinas s
+        TelaAgenda              -> drawAgenda s
+        TelaListaSolicitacoes   -> drawListaSolicitacoes s
+        TelaExibirNotasAluno    -> drawTabelaNotas s
+        TelaListaResultados     -> drawListaResultados s
 
 -------------------------------------------------------------------------------
 -- Definição dos Campos de Formulários (Configuração)
