@@ -225,7 +225,7 @@ Capacidade Máxima: 40
 ```
 
 
-## 🏗️ Arquitetura
+##  Arquitetura
 
 ### Estrutura de Pastas
 
