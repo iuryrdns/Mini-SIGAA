@@ -6,7 +6,7 @@ import Models.Professor
 import Models.Types (Codigo, Horario, Matricula)
 
 data Turma = Turma
-  { _codigo :: Int,
+  { _codigo :: Codigo,
     _matriculaProfessor :: Matricula,
     _disciplina :: Codigo,
     _horario :: Horario,
@@ -16,7 +16,7 @@ data Turma = Turma
   }
   deriving (Show, Read, Eq)
 
-criarTurma :: Int -> Matricula -> Codigo -> Horario -> String -> Int -> Turma
+criarTurma :: Codigo -> Matricula -> Codigo -> Horario -> String -> Int -> Turma
 criarTurma codigo professor disciplina horario sala qtdAlunos =
   Turma
     { _codigo = codigo,
@@ -37,7 +37,7 @@ adicionarAlunoTurma turma aluno =
 limparAlunosTurma :: Turma -> Turma
 limparAlunosTurma turma = turma { _alunos = [] }
 
-getCodigoTurma :: Turma -> Int
+getCodigoTurma :: Turma -> Codigo
 getCodigoTurma = _codigo
 
 getProfessorTurma :: Turma -> Matricula
@@ -61,6 +61,5 @@ setHorarioTurma turma novoHorario = turma {_horario = novoHorario}
 setSalaTurma :: Turma -> String -> Turma
 setSalaTurma turma novaSala = turma {_sala = novaSala}
 
--- Paulo fez as alterações abaixo para testar a IO
 getCapacidadeTurma :: Turma -> Int
 getCapacidadeTurma = _qtdMaxAlunos
